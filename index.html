@@ -4,8 +4,24 @@
     <title>Template Renderer</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,"> <!-- to prevent favicon error -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        .template-controls {
+            margin-bottom: 1rem;
+        }
+        
+        .template-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .template-buttons button {
+            flex: 1;
+        }
+    </style>
 </head>
 <body>
     <main class="container">
@@ -19,10 +35,17 @@
         <div class="grid">
             <div>
                 <article>
-                    <label for="templateSelect">
-                        Select Template
-                        <select id="templateSelect"></select>
-                    </label>
+                    <div class="template-controls">
+                        <label for="templateSelect">
+                            Select Template
+                            <select id="templateSelect"></select>
+                        </label>
+                        <div class="template-buttons">
+                            <input type="file" id="templateFile" accept=".html" style="display: none;">
+                            <button onclick="addTemplate()">Add Template</button>
+                            <button onclick="removeTemplate()" class="secondary">Remove Template</button>
+                        </div>
+                    </div>
                     <div id="inputFields"></div>
                     <button onclick="capturePreview()">
                         Capture Preview
@@ -41,25 +64,115 @@
     <script type="module">
         import { templates } from './app.mjs';
 
+        const builtInPrefix = 'builtin';
+        const customPrefix = 'custom';
+        const prefixSeparator = '-';
+
         let currentTemplate = null;
         let inputValues = {};
+        let customTemplates = [];
+
+        // Load custom templates from localStorage
+        try {
+            customTemplates = JSON.parse(localStorage.getItem('customTemplates')) || [];
+        } catch (e) {
+            console.error('Failed to load custom templates:', e);
+            customTemplates = [];
+        }
+
+        function updateTemplateList() {
+            const templateSelect = document.getElementById('templateSelect');
+            templateSelect.innerHTML = '';
+            
+            // Add built-in templates
+            templates.forEach((template, index) => {
+                const option = document.createElement('option');
+                option.value = `${builtInPrefix}${prefixSeparator}${index}`;
+                option.textContent = template.name;
+                templateSelect.appendChild(option);
+            });
+
+            // Add custom templates
+            customTemplates.forEach((template, index) => {
+                const option = document.createElement('option');
+                option.value = `${customPrefix}${prefixSeparator}${index}`;
+                option.textContent = template.name;
+                templateSelect.appendChild(option);
+            });
+        }
 
         // Initialize template selector
-        const templateSelect = document.getElementById('templateSelect');
-        templates.forEach((template, index) => {
-            const option = document.createElement('option');
-            option.value = index;
-            option.textContent = template.name;
-            templateSelect.appendChild(option);
-        });
+        updateTemplateList();
 
         // Handle template selection
         templateSelect.addEventListener('change', () => {
-            currentTemplate = templates[templateSelect.value];
+            const [type, index] = templateSelect.value.split(prefixSeparator);
+            console.log('Selected template:', templateSelect.value);
+            console.log('Type:', type);
+            console.log('Index:', index);
+            currentTemplate = type === builtInPrefix 
+                ? templates[index] 
+                : customTemplates[index];
             loadTemplate(currentTemplate);
         });
 
+        window.addTemplate = () => {
+            document.getElementById('templateFile').click();
+        };
+
+        document.getElementById('templateFile').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const content = await file.text();
+                const newTemplate = {
+                    name: file.name,
+                    html: content
+                };
+
+                customTemplates.push(newTemplate);
+                localStorage.setItem('customTemplates', JSON.stringify(customTemplates));
+                
+                updateTemplateList();
+                
+                // Select the newly added template
+                const templateSelect = document.getElementById('templateSelect');
+                templateSelect.value = `${customPrefix}${prefixSeparator}${customTemplates.length - 1}`;
+                // Trigger the change event manually after setting the value
+                templateSelect.dispatchEvent(new Event('change'));
+            } catch (error) {
+                console.error('Failed to load template:', error);
+                alert('Failed to load template. Please try again.');
+            }
+        });
+
+        window.removeTemplate = () => {
+            const templateSelect = document.getElementById('templateSelect');
+            const [type, index] = templateSelect.value.split(prefixSeparator);
+            console.log('Removing template:', templateSelect.value);
+            console.log('Type:', type);
+            console.log('Index:', index);
+            
+            if (type === customPrefix) {
+                if (confirm('Are you sure you want to remove this template?')) {
+                    customTemplates.splice(index, 1);
+                    localStorage.setItem('customTemplates', JSON.stringify(customTemplates));
+                    updateTemplateList();
+                    
+                    // Select first available template
+                    if (templates.length > 0) {
+                        currentTemplate = templates[0];
+                        loadTemplate(currentTemplate);
+                    }
+                }
+            } else {
+                alert('Built-in templates cannot be removed');
+            }
+        };
+
         function loadTemplate(template) {
+            console.log('Loading template:', template);
             const inputFields = document.getElementById('inputFields');
             inputFields.innerHTML = '';
             inputValues = {}; // Reset values
