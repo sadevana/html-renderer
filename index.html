@@ -31,7 +31,9 @@
             </div>
             
             <div>
-                <article id="preview"></article>
+                <article>
+                    <iframe id="preview" style="width: 100%; border: none; min-height: 400px;"></iframe>
+                </article>
             </div>
         </div>
     </main>
@@ -95,17 +97,42 @@
                 Object.entries(inputValues).forEach(([key, val]) => {
                     html = html.replace(new RegExp(`{{${key}}}`, 'g'), val);
                 });
-                preview.innerHTML = html;
+                
+                // Write to iframe
+                preview.srcdoc = html;
             }
         };
 
         window.capturePreview = async () => {
             const preview = document.getElementById('preview');
-            const canvas = await html2canvas(preview);
-            const link = document.createElement('a');
-            link.download = `preview-${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            
+            try {
+                // Get the iframe document body
+                const iframeContent = preview.contentDocument.documentElement;
+                
+                // Capture the content
+                const canvas = await html2canvas(iframeContent, {
+                    // Ensure we capture the full content
+                    windowWidth: iframeContent.scrollWidth,
+                    windowHeight: iframeContent.scrollHeight,
+                    // Wait for images and other resources to load
+                    useCORS: true,
+                    logging: false,
+                    // Capture the full document
+                    scale: 1,
+                    width: iframeContent.scrollWidth,
+                    height: iframeContent.scrollHeight
+                });
+
+                // Create download link
+                const link = document.createElement('a');
+                link.download = `template-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('Failed to capture preview:', error);
+                alert('Failed to capture preview. Please try again.');
+            }
         };
 
         // Load first template by default
