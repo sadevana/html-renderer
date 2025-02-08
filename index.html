@@ -80,6 +80,9 @@
             customTemplates = [];
         }
 
+        // Load last selected template from localStorage
+        const lastSelectedTemplate = localStorage.getItem('lastSelectedTemplate');
+
         function updateTemplateList() {
             const templateSelect = document.getElementById('templateSelect');
             const removeButton = document.getElementById('removeTemplateButton');
@@ -101,6 +104,11 @@
                 templateSelect.appendChild(option);
             });
 
+            // Restore last selected template if it exists
+            if (lastSelectedTemplate) {
+                templateSelect.value = lastSelectedTemplate;
+            }
+
             // Show/hide remove button based on selected template
             const [type] = templateSelect.value.split(prefixSeparator);
             removeButton.style.display = type === customPrefix ? 'block' : 'none';
@@ -113,6 +121,9 @@
         templateSelect.addEventListener('change', () => {
             const [type, index] = templateSelect.value.split(prefixSeparator);
             const removeButton = document.getElementById('removeTemplateButton');
+            
+            // Save selected template to localStorage
+            localStorage.setItem('lastSelectedTemplate', templateSelect.value);
             
             // Show/hide remove button based on template type
             removeButton.style.display = type === customPrefix ? 'block' : 'none';
@@ -258,10 +269,13 @@
             }
         };
 
-        // Load first template by default
-        if (templates.length > 0) {
+        // Load first template by default only if no last selected template
+        if (!lastSelectedTemplate && templates.length > 0) {
             currentTemplate = templates[0];
             loadTemplate(currentTemplate);
+        } else if (lastSelectedTemplate) {
+            // Trigger change event to load the last selected template
+            templateSelect.dispatchEvent(new Event('change'));
         }
     </script>
 </body>
