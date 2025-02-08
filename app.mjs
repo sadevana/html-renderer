@@ -1,6 +1,6 @@
 export const templates = [
     {
-        name: "Uncertainty Quote",
+        name: "Uncertainty question",
         html: `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -63,5 +63,60 @@ export const templates = [
 </html>
 
 `
+    },
+    {
+        name: "Quote",
+        html:`
+    <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Цитата</title>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #5A4FCF;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .quote-container {
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .quote {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .author {
+            font-size: 1em;
+            font-weight: bold;
+        }
+        .source {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="quote-container">
+        <div class="quote">“{{quote}}”</div>
+        <div class="author">{{author}}</div>
+        <div class="source">{{source}}</div>
+        <div class="social-media-handle">{{social_media_handle}}</div>
+    </div>
+</body>
+</html>
+    
+        `
     }
 ]; 

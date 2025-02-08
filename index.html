@@ -128,9 +128,6 @@
             // Show/hide remove button based on template type
             removeButton.style.display = type === customPrefix ? 'block' : 'none';
             
-            console.log('Selected template:', templateSelect.value);
-            console.log('Type:', type);
-            console.log('Index:', index);
             currentTemplate = type === builtInPrefix 
                 ? templates[index] 
                 : customTemplates[index];
@@ -171,10 +168,7 @@
         window.removeTemplate = () => {
             const templateSelect = document.getElementById('templateSelect');
             const [type, index] = templateSelect.value.split(prefixSeparator);
-            console.log('Removing template:', templateSelect.value);
-            console.log('Type:', type);
-            console.log('Index:', index);
-            
+    
             if (type === customPrefix) {
                 if (confirm('Are you sure you want to remove this template?')) {
                     customTemplates.splice(index, 1);
