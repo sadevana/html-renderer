@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html data-theme="light">
+<head>
+    <title>Template Renderer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <main class="container">
+        <header class="margin-bottom-lg">
+            <hgroup>
+                <h1>Template Renderer</h1>
+                <h2>Select a template and customize its content</h2>
+            </hgroup>
+        </header>
+
+        <div class="grid">
+            <div>
+                <article>
+                    <label for="templateSelect">
+                        Select Template
+                        <select id="templateSelect"></select>
+                    </label>
+                    <div id="inputFields"></div>
+                    <button onclick="capturePreview()">
+                        Capture Preview
+                    </button>
+                </article>
+            </div>
+            
+            <div>
+                <article id="preview"></article>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { templates } from './app.mjs';
+
+        let currentTemplate = null;
+        let inputValues = {};
+
+        // Initialize template selector
+        const templateSelect = document.getElementById('templateSelect');
+        templates.forEach((template, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = template.name;
+            templateSelect.appendChild(option);
+        });
+
+        // Handle template selection
+        templateSelect.addEventListener('change', () => {
+            currentTemplate = templates[templateSelect.value];
+            loadTemplate(currentTemplate);
+        });
+
+        function loadTemplate(template) {
+            const inputFields = document.getElementById('inputFields');
+            inputFields.innerHTML = '';
+            inputValues = {}; // Reset values
+
+            // Find all variables in the template
+            const variableRegex = /\{\{(\w+)\}\}/g;
+            const variables = new Set();
+            let match;
+            
+            while ((match = variableRegex.exec(template.html)) !== null) {
+                variables.add(match[1]);
+            }
+
+            // Create input fields for each variable
+            variables.forEach(variable => {
+                const label = document.createElement('label');
+                label.innerHTML = `
+                    ${variable}:
+                    <input type="text" class="input-field"
+                           data-variable="${variable}" 
+                           oninput="updatePreview('${variable}', this.value)">
+                `;
+                inputFields.appendChild(label);
+            });
+
+            updatePreview();
+        }
+
+        window.updatePreview = (variable, value) => {
+            if (variable) inputValues[variable] = value;
+            const preview = document.getElementById('preview');
+            
+            if (currentTemplate) {
+                let html = currentTemplate.html;
+                Object.entries(inputValues).forEach(([key, val]) => {
+                    html = html.replace(new RegExp(`{{${key}}}`, 'g'), val);
+                });
+                preview.innerHTML = html;
+            }
+        };
+
+        window.capturePreview = async () => {
+            const preview = document.getElementById('preview');
+            const canvas = await html2canvas(preview);
+            const link = document.createElement('a');
+            link.download = `preview-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        };
+
+        // Load first template by default
+        if (templates.length > 0) {
+            currentTemplate = templates[0];
+            loadTemplate(currentTemplate);
+        }
+    </script>
+</body>
+</html> 
