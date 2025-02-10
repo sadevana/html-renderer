@@ -27,8 +27,8 @@
     <main class="container">
         <header class="margin-bottom-lg">
             <hgroup>
-                <h1>Template Renderer</h1>
-                <h2>Select a template and customize its content</h2>
+                <h1>HTML Renderer</h1>
+                <h2>Select a html template and customize its content</h2>
             </hgroup>
         </header>
 
@@ -232,7 +232,14 @@
         };
 
         window.capturePreview = async () => {
+            if (!currentTemplate) {
+                alert('Please select a template first');
+                return;
+            }
+
             const preview = document.getElementById('preview');
+            const templateName = currentTemplate.name;
+            const firstInputValue = Object.values(inputValues)[0].replace(/\s+/g, '_');
             
             try {
                 // Get the iframe document body
@@ -254,7 +261,7 @@
 
                 // Create download link
                 const link = document.createElement('a');
-                link.download = `template-${Date.now()}.png`;
+                link.download = `${templateName}-${firstInputValue}-${Date.now()}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             } catch (error) {
