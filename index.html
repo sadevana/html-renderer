@@ -4,58 +4,11 @@
     <title>HTML Renderer</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="data:,"> <!-- to prevent favicon error -->
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="/src/styles.css">
 </head>
 <body>
-    <main class="container">
-        <header class="margin-bottom-lg">
-            <hgroup>
-                <h1>HTML Renderer</h1>
-                <h2>Select a html template and customize its content</h2>
-            </hgroup>
-        </header>
-
-        <div class="grid">
-            <div>
-                <article>
-                    <div class="template-controls">
-                        <label for="templateSelect">
-                            Select Template
-                            <select id="templateSelect"></select>
-                        </label>
-                        <div class="template-buttons">
-                            <input type="file" id="templateFile" accept=".html" style="display: none;">
-                            <button id="addTemplateButton">Add Template</button>
-                            <button id="removeTemplateButton" class="secondary" style="display: none;">Remove Template</button>
-                            <button id="captureButton">Capture Preview</button>
-                        </div>
-                    </div>
-
-                    <div class="js-toggle-container">
-                        <label>
-                            <input type="checkbox" id="jsToggle" role="switch">
-                            Allow template JavaScript (unsafe)
-                        </label>
-                    </div>
-                    <div id="jsWarning" class="warning" style="display: none;">
-                        Warning: JavaScript is enabled. Templates can run arbitrary code. Capture is disabled for security.
-                    </div>
-
-                    <div id="inputFields"></div>
-
-                    <div id="corsWarning" class="cors-warning" style="display: none;"></div>
-                </article>
-            </div>
-
-            <div>
-                <article>
-                    <iframe id="preview" sandbox="allow-same-origin" style="width: 100%; border: none; min-height: 400px;"></iframe>
-                </article>
-            </div>
-        </div>
-    </main>
-
-    <script type="module" src="/src/main.ts"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

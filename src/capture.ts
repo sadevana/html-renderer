@@ -1,26 +1,24 @@
 import html2canvas from 'html2canvas';
-import type { DOMElements, AppState } from './types';
+import type { Template } from './types';
 
 export async function capturePreview(
-  elements: DOMElements,
-  state: AppState
+  iframe: HTMLIFrameElement,
+  template: Template,
+  inputValues: Record<string, string>,
+  jsEnabled: boolean,
+  iframeLoaded: boolean
 ): Promise<void> {
-  if (!state.currentTemplate) {
-    alert('No template selected');
-    return;
-  }
-
-  if (state.jsEnabled) {
+  if (jsEnabled) {
     alert('Capture is disabled when JavaScript is enabled for security reasons.');
     return;
   }
 
-  if (!state.iframeLoaded) {
+  if (!iframeLoaded) {
     alert('Please wait for preview to load');
     return;
   }
 
-  const iframeDoc = elements.preview.contentDocument;
+  const iframeDoc = iframe.contentDocument;
   if (!iframeDoc) {
     alert('Cannot access preview content');
     return;
@@ -40,9 +38,9 @@ export async function capturePreview(
     });
 
     // Safe filename generation
-    const firstValue = Object.values(state.inputValues)[0] ?? 'preview';
+    const firstValue = Object.values(inputValues)[0] ?? 'preview';
     const sanitizedValue = firstValue.trim().replace(/\s+/g, '_').slice(0, 50) || 'preview';
-    const safeName = state.currentTemplate.name.replace(/[^a-zA-Z0-9]/g, '_');
+    const safeName = template.name.replace(/[^a-zA-Z0-9]/g, '_');
     const filename = `${safeName}-${sanitizedValue}-${Date.now()}.png`;
 
     const link = document.createElement('a');

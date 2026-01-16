@@ -29,15 +29,3 @@ export function checkForExternalAssets(html: string): string[] {
 
   return [...new Set(externalUrls)];
 }
-
-export function showCorsWarning(
-  element: HTMLElement,
-  externalUrls: string[]
-): void {
-  if (externalUrls.length > 0) {
-    element.textContent = `Warning: Template contains ${externalUrls.length} external asset(s). Capture may fail due to CORS if these don't send CORS headers.`;
-    element.style.display = 'block';
-  } else {
-    element.style.display = 'none';
-  }
-}
