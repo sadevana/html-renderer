@@ -5,23 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:,"> <!-- to prevent favicon error -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <style>
-        .template-controls {
-            margin-bottom: 1rem;
-        }
-        
-        .template-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .template-buttons button {
-            flex: 1;
-        }
-    </style>
+    <link rel="stylesheet" href="/src/styles.css">
 </head>
 <body>
     <main class="container">
@@ -42,242 +26,36 @@
                         </label>
                         <div class="template-buttons">
                             <input type="file" id="templateFile" accept=".html" style="display: none;">
-                            <button onclick="addTemplate()" id="addTemplateButton">Add Template</button>
-                            <button onclick="removeTemplate()" id="removeTemplateButton" class="secondary">Remove Template</button>
+                            <button id="addTemplateButton">Add Template</button>
+                            <button id="removeTemplateButton" class="secondary" style="display: none;">Remove Template</button>
+                            <button id="captureButton">Capture Preview</button>
                         </div>
                     </div>
+
+                    <div class="js-toggle-container">
+                        <label>
+                            <input type="checkbox" id="jsToggle" role="switch">
+                            Allow template JavaScript (unsafe)
+                        </label>
+                    </div>
+                    <div id="jsWarning" class="warning" style="display: none;">
+                        Warning: JavaScript is enabled. Templates can run arbitrary code. Capture is disabled for security.
+                    </div>
+
                     <div id="inputFields"></div>
-                    <button onclick="capturePreview()">
-                        Capture Preview
-                    </button>
+
+                    <div id="corsWarning" class="cors-warning" style="display: none;"></div>
                 </article>
             </div>
-            
+
             <div>
                 <article>
-                    <iframe id="preview" style="width: 100%; border: none; min-height: 400px;"></iframe>
+                    <iframe id="preview" sandbox="allow-same-origin" style="width: 100%; border: none; min-height: 400px;"></iframe>
                 </article>
             </div>
         </div>
     </main>
 
-    <script type="module">
-        import { templates } from './app.mjs';
-
-        const builtInPrefix = 'builtin';
-        const customPrefix = 'custom';
-        const prefixSeparator = '-';
-
-        let currentTemplate = null;
-        let inputValues = {};
-        let customTemplates = [];
-
-        // Load custom templates from localStorage
-        try {
-            customTemplates = JSON.parse(localStorage.getItem('customTemplates')) || [];
-        } catch (e) {
-            console.error('Failed to load custom templates:', e);
-            customTemplates = [];
-        }
-
-        // Load last selected template from localStorage
-        const lastSelectedTemplate = localStorage.getItem('lastSelectedTemplate');
-
-        function updateTemplateList() {
-            const templateSelect = document.getElementById('templateSelect');
-            const removeButton = document.getElementById('removeTemplateButton');
-            templateSelect.innerHTML = '';
-            
-            // Add built-in templates
-            templates.forEach((template, index) => {
-                const option = document.createElement('option');
-                option.value = `${builtInPrefix}${prefixSeparator}${index}`;
-                option.textContent = template.name;
-                templateSelect.appendChild(option);
-            });
-
-            // Add custom templates
-            customTemplates.forEach((template, index) => {
-                const option = document.createElement('option');
-                option.value = `${customPrefix}${prefixSeparator}${index}`;
-                option.textContent = template.name;
-                templateSelect.appendChild(option);
-            });
-
-            // Restore last selected template if it exists
-            if (lastSelectedTemplate) {
-                templateSelect.value = lastSelectedTemplate;
-            }
-
-            // Show/hide remove button based on selected template
-            const [type] = templateSelect.value.split(prefixSeparator);
-            removeButton.style.display = type === customPrefix ? 'block' : 'none';
-        }
-
-        // Initialize template selector
-        updateTemplateList();
-
-        // Handle template selection
-        templateSelect.addEventListener('change', () => {
-            const [type, index] = templateSelect.value.split(prefixSeparator);
-            const removeButton = document.getElementById('removeTemplateButton');
-            
-            // Save selected template to localStorage
-            localStorage.setItem('lastSelectedTemplate', templateSelect.value);
-            
-            // Show/hide remove button based on template type
-            removeButton.style.display = type === customPrefix ? 'block' : 'none';
-            
-            currentTemplate = type === builtInPrefix 
-                ? templates[index] 
-                : customTemplates[index];
-            loadTemplate(currentTemplate);
-        });
-
-        window.addTemplate = () => {
-            document.getElementById('templateFile').click();
-        };
-
-        document.getElementById('templateFile').addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            try {
-                const content = await file.text();
-                const newTemplate = {
-                    name: file.name,
-                    html: content
-                };
-
-                customTemplates.push(newTemplate);
-                localStorage.setItem('customTemplates', JSON.stringify(customTemplates));
-                
-                updateTemplateList();
-                
-                // Select the newly added template
-                const templateSelect = document.getElementById('templateSelect');
-                templateSelect.value = `${customPrefix}${prefixSeparator}${customTemplates.length - 1}`;
-                // Trigger the change event manually after setting the value
-                templateSelect.dispatchEvent(new Event('change'));
-            } catch (error) {
-                console.error('Failed to load template:', error);
-                alert('Failed to load template. Please try again.');
-            }
-        });
-
-        window.removeTemplate = () => {
-            const templateSelect = document.getElementById('templateSelect');
-            const [type, index] = templateSelect.value.split(prefixSeparator);
-    
-            if (type === customPrefix) {
-                if (confirm('Are you sure you want to remove this template?')) {
-                    customTemplates.splice(index, 1);
-                    localStorage.setItem('customTemplates', JSON.stringify(customTemplates));
-                    updateTemplateList();
-                    
-                    // Select first available template
-                    if (templates.length > 0) {
-                        currentTemplate = templates[0];
-                        loadTemplate(currentTemplate);
-                    }
-                }
-            } else {
-                alert('Built-in templates cannot be removed');
-            }
-        };
-
-        function loadTemplate(template) {
-            console.log('Loading template:', template);
-            const inputFields = document.getElementById('inputFields');
-            inputFields.innerHTML = '';
-            inputValues = {}; // Reset values
-
-            // Find all variables in the template
-            const variableRegex = /\{\{(\w+)\}\}/g;
-            const variables = new Set();
-            let match;
-            
-            while ((match = variableRegex.exec(template.html)) !== null) {
-                variables.add(match[1]);
-            }
-
-            // Create input fields for each variable
-            variables.forEach(variable => {
-                const label = document.createElement('label');
-                label.innerHTML = `
-                    ${variable}:
-                    <input type="text" class="input-field"
-                           data-variable="${variable}" 
-                           oninput="updatePreview('${variable}', this.value)">
-                `;
-                inputFields.appendChild(label);
-            });
-
-            updatePreview();
-        }
-
-        window.updatePreview = (variable, value) => {
-            if (variable) inputValues[variable] = value;
-            const preview = document.getElementById('preview');
-            
-            if (currentTemplate) {
-                let html = currentTemplate.html;
-                Object.entries(inputValues).forEach(([key, val]) => {
-                    html = html.replace(new RegExp(`{{${key}}}`, 'g'), val);
-                });
-                
-                // Write to iframe
-                preview.srcdoc = html;
-            }
-        };
-
-        window.capturePreview = async () => {
-            if (!currentTemplate) {
-                alert('Please select a template first');
-                return;
-            }
-
-            const preview = document.getElementById('preview');
-            const templateName = currentTemplate.name;
-            const firstInputValue = Object.values(inputValues)[0].replace(/\s+/g, '_');
-            
-            try {
-                // Get the iframe document body
-                const iframeContent = preview.contentDocument.documentElement;
-                
-                // Capture the content
-                const canvas = await html2canvas(iframeContent, {
-                    // Ensure we capture the full content
-                    windowWidth: iframeContent.scrollWidth,
-                    windowHeight: iframeContent.scrollHeight,
-                    // Wait for images and other resources to load
-                    useCORS: true,
-                    logging: false,
-                    // Capture the full document
-                    scale: 1,
-                    width: iframeContent.scrollWidth,
-                    height: iframeContent.scrollHeight
-                });
-
-                // Create download link
-                const link = document.createElement('a');
-                link.download = `${templateName}-${firstInputValue}-${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            } catch (error) {
-                console.error('Failed to capture preview:', error);
-                alert('Failed to capture preview. Please try again.');
-            }
-        };
-
-        // Load first template by default only if no last selected template
-        if (!lastSelectedTemplate && templates.length > 0) {
-            currentTemplate = templates[0];
-            loadTemplate(currentTemplate);
-        } else if (lastSelectedTemplate) {
-            // Trigger change event to load the last selected template
-            templateSelect.dispatchEvent(new Event('change'));
-        }
-    </script>
+    <script type="module" src="/src/main.ts"></script>
 </body>
-</html> 
+</html>

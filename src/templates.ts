@@ -1,7 +1,9 @@
-export const templates = [
-    {
-        name: "Uncertainty question",
-        html: `<!DOCTYPE html>
+import type { Template } from './types';
+
+export const builtInTemplates: Template[] = [
+  {
+    name: "Uncertainty question",
+    html: `<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -61,13 +63,11 @@ export const templates = [
     </div>
 </body>
 </html>
-
 `
-    },
-    {
-        name: "Quote",
-        html:`
-    <!DOCTYPE html>
+  },
+  {
+    name: "Quote",
+    html: `<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -109,14 +109,13 @@ export const templates = [
 </head>
 <body>
     <div class="quote-container">
-        <div class="quote">“{{quote}}”</div>
+        <div class="quote">"{{quote}}"</div>
         <div class="author">{{author}}</div>
         <div class="source">{{source}}</div>
         <div class="social-media-handle">{{social_media_handle}}</div>
     </div>
 </body>
 </html>
-    
-        `
-    }
-]; 
+`
+  }
+];
