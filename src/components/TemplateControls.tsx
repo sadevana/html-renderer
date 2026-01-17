@@ -47,7 +47,7 @@ export function TemplateControls({
         ref={fileInputRef}
         accept=".html"
         style={{ display: 'none' }}
-        onChange={handleFileChange}
+        onChange={(e) => { void handleFileChange(e); }}
       />
       <button onClick={handleAddClick}>Add Template</button>
       {isCustomSelected && (

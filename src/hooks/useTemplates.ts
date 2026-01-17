@@ -21,14 +21,14 @@ export interface UseTemplatesReturn {
   setSelectedValue: (value: string) => void;
   addTemplate: (template: Template) => void;
   removeTemplate: () => void;
-  getAllTemplates: () => Array<{ value: string; name: string }>;
+  getAllTemplates: () => { value: string; name: string }[];
 }
 
 export function useTemplates(): UseTemplatesReturn {
   const [customTemplates, setCustomTemplates] = useState<Template[]>(() => loadCustomTemplates());
   const [selectedValue, setSelectedValueState] = useState<string>(() => {
     const lastSelected = loadLastSelected();
-    if (lastSelected) {
+    if (lastSelected !== null && lastSelected !== '') {
       // Validate that the selection still exists
       const [type, indexStr] = lastSelected.split(PREFIX_SEPARATOR);
       const index = parseInt(indexStr, 10);
@@ -63,7 +63,7 @@ export function useTemplates(): UseTemplatesReturn {
     setCustomTemplates(prev => {
       const updated = [...prev, template];
       saveCustomTemplates(updated);
-      const newValue = `${CUSTOM_PREFIX}${PREFIX_SEPARATOR}${updated.length - 1}`;
+      const newValue = `${CUSTOM_PREFIX}${PREFIX_SEPARATOR}${String(updated.length - 1)}`;
       setSelectedValueState(newValue);
       saveLastSelected(newValue);
       return updated;
@@ -89,18 +89,18 @@ export function useTemplates(): UseTemplatesReturn {
   }, [isCustomSelected, selectedValue]);
 
   const getAllTemplates = useCallback(() => {
-    const templates: Array<{ value: string; name: string }> = [];
+    const templates: { value: string; name: string }[] = [];
 
     builtInTemplates.forEach((t, i) => {
       templates.push({
-        value: `${BUILTIN_PREFIX}${PREFIX_SEPARATOR}${i}`,
+        value: `${BUILTIN_PREFIX}${PREFIX_SEPARATOR}${String(i)}`,
         name: t.name,
       });
     });
 
     customTemplates.forEach((t, i) => {
       templates.push({
-        value: `${CUSTOM_PREFIX}${PREFIX_SEPARATOR}${i}`,
+        value: `${CUSTOM_PREFIX}${PREFIX_SEPARATOR}${String(i)}`,
         name: t.name,
       });
     });

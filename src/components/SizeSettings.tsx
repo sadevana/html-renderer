@@ -17,7 +17,7 @@ export function SizeSettings({ onChange }: SizeSettingsProps) {
       onChange({ width: customWidth, height: customHeight });
     } else {
       const preset = SIZE_PRESETS.find((p) => p.id === selectedPresetId);
-      if (preset && preset.id === 'auto') {
+      if (preset?.id === 'auto') {
         onChange(null);
       } else if (preset) {
         onChange({ width: preset.width, height: preset.height });
@@ -40,10 +40,10 @@ export function SizeSettings({ onChange }: SizeSettingsProps) {
   };
 
   const currentDimensions = isAdvanced
-    ? `${customWidth} × ${customHeight} px`
+    ? `${String(customWidth)} × ${String(customHeight)} px`
     : selectedPresetId === 'auto'
       ? 'Auto (based on content)'
-      : `${SIZE_PRESETS.find((p) => p.id === selectedPresetId)?.width} × ${SIZE_PRESETS.find((p) => p.id === selectedPresetId)?.height} px`;
+      : `${String(SIZE_PRESETS.find((p) => p.id === selectedPresetId)?.width ?? 0)} × ${String(SIZE_PRESETS.find((p) => p.id === selectedPresetId)?.height ?? 0)} px`;
 
   return (
     <div className="size-settings">
@@ -63,7 +63,7 @@ export function SizeSettings({ onChange }: SizeSettingsProps) {
               type="number"
               min="1"
               value={customWidth}
-              onChange={(e) => setCustomWidth(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={(e) => { setCustomWidth(Math.max(1, parseInt(e.target.value) || 1)); }}
             />
           </div>
           <span className="dimension-separator">×</span>
@@ -74,7 +74,7 @@ export function SizeSettings({ onChange }: SizeSettingsProps) {
               type="number"
               min="1"
               value={customHeight}
-              onChange={(e) => setCustomHeight(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={(e) => { setCustomHeight(Math.max(1, parseInt(e.target.value) || 1)); }}
             />
           </div>
         </div>

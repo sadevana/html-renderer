@@ -9,7 +9,7 @@ const escapeMap: Record<string, string> = {
 };
 
 export function escapeHtml(str: string): string {
-  return str.replace(/[&<>"']/g, char => escapeMap[char]);
+  return str.replace(/[&<>"']/g, (char) => escapeMap[char] ?? char);
 }
 
 export function renderTemplate(
@@ -17,14 +17,14 @@ export function renderTemplate(
   values: Record<string, string>,
   fontScale?: FontScaleConfig
 ): string {
-  let result = html.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+  let result = html.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
     const escaped = escapeHtml(values[key] ?? '');
 
     // Per-field mode: wrap value in styled span
     if (fontScale?.mode === 'perField') {
       const scale = fontScale.perField[key] ?? 1;
       if (scale !== 1) {
-        return `<span style="font-size: calc(1em * ${scale})">${escaped}</span>`;
+        return `<span style="font-size: calc(1em * ${String(scale)})">${escaped}</span>`;
       }
     }
 
@@ -33,7 +33,7 @@ export function renderTemplate(
 
   // Global mode: inject CSS into <head>
   if (fontScale?.mode === 'global' && fontScale.global !== 1) {
-    const cssInjection = `<style>:root { --font-scale: ${fontScale.global}; font-size: calc(100% * ${fontScale.global}); }</style>`;
+    const cssInjection = `<style>:root { --font-scale: ${String(fontScale.global)}; font-size: calc(100% * ${String(fontScale.global)}); }</style>`;
 
     // Insert before closing </head> tag, or at start of document if no head
     if (result.includes('</head>')) {
@@ -46,7 +46,7 @@ export function renderTemplate(
   } else if (fontScale) {
     // Always inject --font-scale variable for templates that use it
     const scale = fontScale.mode === 'global' ? fontScale.global : 1;
-    const cssInjection = `<style>:root { --font-scale: ${scale}; }</style>`;
+    const cssInjection = `<style>:root { --font-scale: ${String(scale)}; }</style>`;
 
     if (result.includes('</head>')) {
       result = result.replace('</head>', `${cssInjection}</head>`);

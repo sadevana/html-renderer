@@ -39,7 +39,7 @@ export function FontScaleSlider({ value, onChange }: FontScaleSliderProps) {
             max="2"
             step="0.1"
             value={value.global}
-            onChange={(e) => handleGlobalChange(parseFloat(e.target.value))}
+            onChange={(e) => { handleGlobalChange(parseFloat(e.target.value)); }}
             className="font-scale-slider"
           />
           <span className="font-scale-value">{percentage}%</span>
@@ -47,7 +47,7 @@ export function FontScaleSlider({ value, onChange }: FontScaleSliderProps) {
             <button
               type="button"
               className="font-scale-reset"
-              onClick={() => handleGlobalChange(1)}
+              onClick={() => { handleGlobalChange(1); }}
               title="Reset to 100%"
             >
               Reset

@@ -50,7 +50,7 @@ export function useCapture({
 
   const capture = useCallback(() => {
     if (!previewRef.current || !currentTemplate) return;
-    capturePreview(
+    void capturePreview(
       previewRef.current,
       currentTemplate,
       inputValues,
@@ -59,25 +59,25 @@ export function useCapture({
     );
   }, [previewRef, currentTemplate, inputValues, iframeLoaded, captureSize]);
 
-  const copyToClipboard = useCallback(async () => {
+  const copyToClipboard = useCallback(() => {
     if (!previewRef.current || !canCapture) return;
 
     setCopyStatus('copying');
 
-    const result = await copyPreviewToClipboard(
+    void copyPreviewToClipboard(
       previewRef.current,
       iframeLoaded,
       captureSize
-    );
-
-    if (result.success) {
-      setCopyStatus('success');
-      setTimeout(() => setCopyStatus('idle'), 2000);
-    } else {
-      setCopyStatus('error');
-      alert(result.error);
-      setTimeout(() => setCopyStatus('idle'), 2000);
-    }
+    ).then((result) => {
+      if (result.success) {
+        setCopyStatus('success');
+        setTimeout(() => { setCopyStatus('idle'); }, 2000);
+      } else {
+        setCopyStatus('error');
+        alert(result.error);
+        setTimeout(() => { setCopyStatus('idle'); }, 2000);
+      }
+    });
   }, [previewRef, canCapture, iframeLoaded, captureSize]);
 
   return { capture, copyToClipboard, canCapture, captureTitle, clipboardSupported, copyStatus };

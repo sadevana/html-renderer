@@ -37,7 +37,7 @@ export const PreviewPane = forwardRef<HTMLIFrameElement, PreviewPaneProps>(
               width: captureSize.width,
               height: captureSize.height,
               border: 'none',
-              transform: `scale(${scale})`,
+              transform: `scale(${String(scale)})`,
               transformOrigin: 'top left',
             }}
           />

@@ -10,7 +10,7 @@ interface InputFieldsProps {
 }
 
 export function InputFields({ variables, values, onChange, fontScale, onFontScaleChange }: InputFieldsProps) {
-  const showPerFieldSliders = fontScale?.mode === 'perField' && onFontScaleChange;
+  const showPerFieldSliders = fontScale?.mode === 'perField' && onFontScaleChange !== undefined;
 
   return (
     <div>
@@ -22,7 +22,7 @@ export function InputFields({ variables, values, onChange, fontScale, onFontScal
               type="text"
               className="input-field"
               value={values[variable] ?? ''}
-              onChange={(e) => onChange(variable, e.target.value)}
+              onChange={(e) => { onChange(variable, e.target.value); }}
             />
           </label>
           {showPerFieldSliders && (
@@ -33,7 +33,7 @@ export function InputFields({ variables, values, onChange, fontScale, onFontScal
                 max="2"
                 step="0.1"
                 value={fontScale.perField[variable] ?? 1}
-                onChange={(e) => onFontScaleChange(variable, parseFloat(e.target.value))}
+                onChange={(e) => { onFontScaleChange(variable, parseFloat(e.target.value)); }}
                 className="font-scale-slider font-scale-slider-inline"
                 title="Font scale"
               />

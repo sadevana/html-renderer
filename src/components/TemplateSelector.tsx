@@ -1,6 +1,6 @@
 interface TemplateSelectorProps {
   selectedValue: string;
-  templates: Array<{ value: string; name: string }>;
+  templates: { value: string; name: string }[];
   onChange: (value: string) => void;
 }
 
@@ -15,7 +15,7 @@ export function TemplateSelector({
       <select
         id="templateSelect"
         value={selectedValue}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => { onChange(e.target.value); }}
       >
         {templates.map((t) => (
           <option key={t.value} value={t.value}>

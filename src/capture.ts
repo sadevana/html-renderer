@@ -85,26 +85,27 @@ export async function copyPreviewToClipboard(
   try {
     const canvas = await createCanvas(iframe, captureSize);
 
-    return new Promise((resolve) => {
-      canvas.toBlob(async (blob) => {
+    return await new Promise((resolve) => {
+      canvas.toBlob((blob) => {
         if (!blob) {
           resolve({ success: false, error: 'Failed to copy. Try downloading instead.' });
           return;
         }
 
-        try {
-          await navigator.clipboard.write([
-            new ClipboardItem({ 'image/png': blob })
-          ]);
-          resolve({ success: true });
-        } catch (err) {
-          console.error('Clipboard write failed:', err);
-          if (err instanceof Error && err.name === 'NotAllowedError') {
-            resolve({ success: false, error: 'Clipboard access denied. Please allow clipboard permissions.' });
-          } else {
-            resolve({ success: false, error: 'Failed to copy. Try downloading instead.' });
-          }
-        }
+        navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ])
+          .then(() => {
+            resolve({ success: true });
+          })
+          .catch((err: unknown) => {
+            console.error('Clipboard write failed:', err);
+            if (err instanceof Error && err.name === 'NotAllowedError') {
+              resolve({ success: false, error: 'Clipboard access denied. Please allow clipboard permissions.' });
+            } else {
+              resolve({ success: false, error: 'Failed to copy. Try downloading instead.' });
+            }
+          });
       }, 'image/png');
     });
   } catch (error) {
@@ -132,7 +133,7 @@ export async function capturePreview(
     const firstValue = Object.values(inputValues)[0] ?? 'preview';
     const sanitizedValue = firstValue.trim().replace(/\s+/g, '_').slice(0, 50) || 'preview';
     const safeName = template.name.replace(/[^a-zA-Z0-9]/g, '_');
-    const filename = `${safeName}-${sanitizedValue}-${Date.now()}.png`;
+    const filename = `${safeName}-${sanitizedValue}-${String(Date.now())}.png`;
 
     const link = document.createElement('a');
     link.download = filename;

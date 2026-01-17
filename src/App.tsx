@@ -104,16 +104,17 @@ export function App() {
     setIframeLoaded(true);
   };
 
-  const copyForAI = async () => {
+  const copyForAI = () => {
     setCopyForAIStatus('copying');
 
-    try {
-      await navigator.clipboard.writeText(instructions);
-      setCopyForAIStatus('success');
-      setTimeout(() => setCopyForAIStatus('idle'), 2000);
-    } catch {
-      setCopyForAIStatus('idle');
-    }
+    navigator.clipboard.writeText(instructions)
+      .then(() => {
+        setCopyForAIStatus('success');
+        setTimeout(() => { setCopyForAIStatus('idle'); }, 2000);
+      })
+      .catch(() => {
+        setCopyForAIStatus('idle');
+      });
   };
 
   const copyForAIButtonText = copyForAIStatus === 'copying' ? 'Copying...' : copyForAIStatus === 'success' ? 'Copied!' : 'Copy for AI Generation';

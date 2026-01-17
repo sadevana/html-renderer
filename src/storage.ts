@@ -10,15 +10,15 @@ const STORAGE_KEYS = {
 export function loadCustomTemplates(): Template[] {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.CUSTOM_TEMPLATES);
-    if (!data) return [];
-    const parsed = JSON.parse(data);
+    if (data === null || data === '') return [];
+    const parsed: unknown = JSON.parse(data);
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(
       (t): t is Template =>
         typeof t === 'object' &&
         t !== null &&
-        typeof t.name === 'string' &&
-        typeof t.html === 'string'
+        typeof (t as Record<string, unknown>).name === 'string' &&
+        typeof (t as Record<string, unknown>).html === 'string'
     );
   } catch {
     return [];
@@ -50,10 +50,10 @@ const DEFAULT_FONT_SCALE: FontScaleConfig = {
 function loadAllFontScales(): Record<string, FontScaleConfig> {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.FONT_SCALES);
-    if (!data) return {};
-    const parsed = JSON.parse(data);
+    if (data === null || data === '') return {};
+    const parsed: unknown = JSON.parse(data);
     if (typeof parsed !== 'object' || parsed === null) return {};
-    return parsed;
+    return parsed as Record<string, FontScaleConfig>;
   } catch {
     return {};
   }
@@ -61,12 +61,12 @@ function loadAllFontScales(): Record<string, FontScaleConfig> {
 
 export function loadFontScaleForTemplate(templateName: string): FontScaleConfig {
   const scales = loadAllFontScales();
-  const config = scales[templateName];
-  if (!config) return { ...DEFAULT_FONT_SCALE };
+  const config = scales[templateName] as FontScaleConfig | undefined;
+  if (config === undefined) return { ...DEFAULT_FONT_SCALE };
   return {
     mode: config.mode === 'perField' ? 'perField' : 'global',
     global: typeof config.global === 'number' ? config.global : 1,
-    perField: typeof config.perField === 'object' && config.perField !== null
+    perField: typeof config.perField === 'object'
       ? config.perField
       : {},
   };
