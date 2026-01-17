@@ -143,6 +143,7 @@ export function App() {
               html={renderedHtml}
               jsEnabled={jsEnabled}
               onLoad={handlePreviewLoad}
+              captureSize={captureSize}
             />
           </article>
         </div>

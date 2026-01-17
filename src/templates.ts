@@ -22,29 +22,35 @@ export const builtInTemplates: Template[] = [
         }
         .container {
             position: relative;
-            width: 300px;
+            width: 60vmin;
             text-align: center;
         }
         .card {
             background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            padding: 5vmin;
+            border-radius: 3vmin;
+            box-shadow: 0 2vmin 4vmin rgba(0, 0, 0, 0.2);
             transform: rotate(-5deg);
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
         .card h1 {
-            font-size: 20px;
-            margin: 10px 0;
+            font-size: clamp(1rem, 4vw, 3rem);
+            margin: 2vmin 0;
         }
         .question-mark {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 20px 0;
+            margin: 4vmin 0;
+        }
+        .question-mark svg {
+            width: 20vmin;
+            height: 20vmin;
         }
         .footer {
-            margin-top: 15px;
-            font-size: 14px;
+            margin-top: 3vmin;
+            font-size: clamp(0.8rem, 3vw, 2rem);
             color: white;
         }
     </style>
@@ -54,7 +60,7 @@ export const builtInTemplates: Template[] = [
         <div class="card">
             <h1>{{question}}</h1>
             <div class="question-mark">
-                <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                     <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="80" fill="#6a5acd">?</text>
                 </svg>
             </div>
@@ -83,27 +89,35 @@ export const builtInTemplates: Template[] = [
             align-items: center;
             height: 100vh;
             text-align: center;
-            padding: 20px;
+            padding: 5vmin;
+            margin: 0;
+            box-sizing: border-box;
         }
         .quote-container {
-            max-width: 600px;
+            max-width: 80vw;
             background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
+            padding: 5vmin;
+            border-radius: 2vmin;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
         .quote {
-            font-size: 1.5em;
+            font-size: clamp(1.2rem, 5vw, 4rem);
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 4vmin;
         }
         .author {
-            font-size: 1em;
+            font-size: clamp(0.9rem, 3vw, 2.5rem);
             font-weight: bold;
         }
         .source {
-            font-size: 0.9em;
+            font-size: clamp(0.8rem, 2.5vw, 2rem);
             opacity: 0.8;
+        }
+        .social-media-handle {
+            font-size: clamp(0.8rem, 2.5vw, 2rem);
+            margin-top: 2vmin;
         }
     </style>
 </head>
