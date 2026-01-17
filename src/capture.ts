@@ -42,14 +42,9 @@ async function createCanvas(
 
 export async function copyPreviewToClipboard(
   iframe: HTMLIFrameElement,
-  jsEnabled: boolean,
   iframeLoaded: boolean,
   captureSize: CaptureSize | null
 ): Promise<CopyResult> {
-  if (jsEnabled) {
-    return { success: false, error: 'Copy is disabled when JavaScript is enabled for security reasons.' };
-  }
-
   if (!iframeLoaded) {
     return { success: false, error: 'Please wait for preview to load' };
   }
@@ -89,15 +84,9 @@ export async function capturePreview(
   iframe: HTMLIFrameElement,
   template: Template,
   inputValues: Record<string, string>,
-  jsEnabled: boolean,
   iframeLoaded: boolean,
   captureSize: CaptureSize | null
 ): Promise<void> {
-  if (jsEnabled) {
-    alert('Capture is disabled when JavaScript is enabled for security reasons.');
-    return;
-  }
-
   if (!iframeLoaded) {
     alert('Please wait for preview to load');
     return;

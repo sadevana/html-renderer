@@ -3,14 +3,13 @@ import type { CaptureSize } from '../types';
 
 interface PreviewPaneProps {
   html: string;
-  jsEnabled: boolean;
   onLoad: () => void;
   captureSize: CaptureSize | null;
 }
 
 export const PreviewPane = forwardRef<HTMLIFrameElement, PreviewPaneProps>(
-  function PreviewPane({ html, jsEnabled, onLoad, captureSize }, ref) {
-    const sandbox = jsEnabled ? 'allow-scripts' : 'allow-same-origin';
+  function PreviewPane({ html, onLoad, captureSize }, ref) {
+    const sandbox = 'allow-same-origin';
 
     // When captureSize is set, scale the preview to fit within maxPreviewHeight
     // while maintaining internal viewport dimensions for vw/vh units

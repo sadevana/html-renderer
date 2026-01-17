@@ -150,48 +150,7 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
 }
 
-/* Toggle Switch */
-input[type="checkbox"][role="switch"] {
-  appearance: none;
-  width: 2.5rem;
-  height: 1.5rem;
-  background-color: var(--color-border);
-  border-radius: 1rem;
-  position: relative;
-  cursor: pointer;
-  transition: background-color var(--transition);
-  flex-shrink: 0;
-}
-
-input[type="checkbox"][role="switch"]::before {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: calc(1.5rem - 4px);
-  height: calc(1.5rem - 4px);
-  background-color: #fff;
-  border-radius: 50%;
-  transition: transform var(--transition);
-}
-
-input[type="checkbox"][role="switch"]:checked {
-  background-color: var(--color-primary);
-}
-
-input[type="checkbox"][role="switch"]:checked::before {
-  transform: translateX(1rem);
-}
-
 /* Warning Boxes */
-.warning {
-  color: #d33;
-  padding: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-  border-left: 3px solid #d33;
-  background: rgba(221, 51, 51, 0.05);
-}
-
 .cors-warning {
   color: #c60;
   padding: var(--spacing-sm);
@@ -214,20 +173,6 @@ input[type="checkbox"][role="switch"]:checked::before {
 
 .template-buttons button {
   flex: 1;
-}
-
-/* JS Toggle */
-.js-toggle-container {
-  margin-top: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-}
-
-.js-toggle-container label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  cursor: pointer;
-  font-weight: normal;
 }
 
 /* Utilities */

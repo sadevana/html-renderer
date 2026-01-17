@@ -3,7 +3,6 @@ import { Header } from './components/Header';
 import { TemplateSelector } from './components/TemplateSelector';
 import { TemplateControls } from './components/TemplateControls';
 import { InputFields } from './components/InputFields';
-import { JavaScriptToggle } from './components/JavaScriptToggle';
 import { WarningBanner } from './components/WarningBanner';
 import { PreviewPane } from './components/PreviewPane';
 import { SizeSettings } from './components/SizeSettings';
@@ -29,7 +28,6 @@ export function App() {
   } = useTemplates();
 
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
-  const [jsEnabled, setJsEnabled] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [captureSize, setCaptureSize] = useState<CaptureSize | null>(null);
   const [copyForAIStatus, setCopyForAIStatus] = useState<'idle' | 'copying' | 'success'>('idle');
@@ -69,7 +67,6 @@ export function App() {
     previewRef,
     currentTemplate,
     inputValues,
-    jsEnabled,
     iframeLoaded,
     captureSize,
   });
@@ -105,11 +102,6 @@ export function App() {
 
   const handlePreviewLoad = () => {
     setIframeLoaded(true);
-  };
-
-  const handleJsToggle = (enabled: boolean) => {
-    setJsEnabled(enabled);
-    setIframeLoaded(false);
   };
 
   const copyForAI = async () => {
@@ -182,10 +174,6 @@ export function App() {
               <span className="help-icon" title="Copies template guidelines for AI assistants to generate compatible HTML templates with proper viewport units and variable syntax.">?</span>
             </div>
 
-            <JavaScriptToggle enabled={jsEnabled} onChange={handleJsToggle} />
-
-            <WarningBanner type="js" visible={jsEnabled} />
-
             <InputFields
               variables={variables}
               values={inputValues}
@@ -194,7 +182,7 @@ export function App() {
               onFontScaleChange={handlePerFieldFontScaleChange}
             />
 
-            <WarningBanner type="cors" externalUrls={externalUrls} />
+            <WarningBanner externalUrls={externalUrls} />
           </article>
         </div>
 
@@ -203,7 +191,6 @@ export function App() {
             <PreviewPane
               ref={previewRef}
               html={renderedHtml}
-              jsEnabled={jsEnabled}
               onLoad={handlePreviewLoad}
               captureSize={captureSize}
             />

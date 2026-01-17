@@ -8,7 +8,6 @@ interface UseCaptureParams {
   previewRef: RefObject<HTMLIFrameElement | null>;
   currentTemplate: Template | null;
   inputValues: Record<string, string>;
-  jsEnabled: boolean;
   iframeLoaded: boolean;
   captureSize: CaptureSize | null;
 }
@@ -26,13 +25,12 @@ export function useCapture({
   previewRef,
   currentTemplate,
   inputValues,
-  jsEnabled,
   iframeLoaded,
   captureSize,
 }: UseCaptureParams): UseCaptureReturn {
   const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle');
 
-  const canCapture = !jsEnabled && iframeLoaded && currentTemplate !== null;
+  const canCapture = iframeLoaded && currentTemplate !== null;
 
   const clipboardSupported = useMemo(() => {
     return typeof navigator !== 'undefined' &&
@@ -41,9 +39,6 @@ export function useCapture({
   }, []);
 
   const captureTitle = useMemo(() => {
-    if (jsEnabled) {
-      return 'Capture is disabled when JavaScript is enabled';
-    }
     if (!iframeLoaded) {
       return 'Waiting for preview to load';
     }
@@ -51,7 +46,7 @@ export function useCapture({
       return 'No template selected';
     }
     return '';
-  }, [jsEnabled, iframeLoaded, currentTemplate]);
+  }, [iframeLoaded, currentTemplate]);
 
   const capture = useCallback(() => {
     if (!previewRef.current || !currentTemplate) return;
@@ -59,11 +54,10 @@ export function useCapture({
       previewRef.current,
       currentTemplate,
       inputValues,
-      jsEnabled,
       iframeLoaded,
       captureSize
     );
-  }, [previewRef, currentTemplate, inputValues, jsEnabled, iframeLoaded, captureSize]);
+  }, [previewRef, currentTemplate, inputValues, iframeLoaded, captureSize]);
 
   const copyToClipboard = useCallback(async () => {
     if (!previewRef.current || !canCapture) return;
@@ -72,7 +66,6 @@ export function useCapture({
 
     const result = await copyPreviewToClipboard(
       previewRef.current,
-      jsEnabled,
       iframeLoaded,
       captureSize
     );
@@ -85,7 +78,7 @@ export function useCapture({
       alert(result.error);
       setTimeout(() => setCopyStatus('idle'), 2000);
     }
-  }, [previewRef, canCapture, jsEnabled, iframeLoaded, captureSize]);
+  }, [previewRef, canCapture, iframeLoaded, captureSize]);
 
   return { capture, copyToClipboard, canCapture, captureTitle, clipboardSupported, copyStatus };
 }
