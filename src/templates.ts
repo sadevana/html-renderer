@@ -35,7 +35,7 @@ export const builtInTemplates: Template[] = [
             word-wrap: break-word;
         }
         .card h1 {
-            font-size: clamp(1rem, 4vw, 3rem);
+            font-size: calc(clamp(1rem, 4vw, 3rem) * var(--font-scale, 1));
             margin: 2vmin 0;
         }
         .question-mark {
@@ -50,7 +50,7 @@ export const builtInTemplates: Template[] = [
         }
         .footer {
             margin-top: 3vmin;
-            font-size: clamp(0.8rem, 3vw, 2rem);
+            font-size: calc(clamp(0.8rem, 3vw, 2rem) * var(--font-scale, 1));
             color: white;
         }
     </style>
@@ -103,20 +103,20 @@ export const builtInTemplates: Template[] = [
             word-wrap: break-word;
         }
         .quote {
-            font-size: clamp(1.2rem, 5vw, 4rem);
+            font-size: calc(clamp(1.2rem, 5vw, 4rem) * var(--font-scale, 1));
             font-weight: bold;
             margin-bottom: 4vmin;
         }
         .author {
-            font-size: clamp(0.9rem, 3vw, 2.5rem);
+            font-size: calc(clamp(0.9rem, 3vw, 2.5rem) * var(--font-scale, 1));
             font-weight: bold;
         }
         .source {
-            font-size: clamp(0.8rem, 2.5vw, 2rem);
+            font-size: calc(clamp(0.8rem, 2.5vw, 2rem) * var(--font-scale, 1));
             opacity: 0.8;
         }
         .social-media-handle {
-            font-size: clamp(0.8rem, 2.5vw, 2rem);
+            font-size: calc(clamp(0.8rem, 2.5vw, 2rem) * var(--font-scale, 1));
             margin-top: 2vmin;
         }
     </style>

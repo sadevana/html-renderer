@@ -7,11 +7,13 @@ import { JavaScriptToggle } from './components/JavaScriptToggle';
 import { WarningBanner } from './components/WarningBanner';
 import { PreviewPane } from './components/PreviewPane';
 import { SizeSettings } from './components/SizeSettings';
+import { FontScaleSlider, type FontScaleConfig } from './components/FontScaleSlider';
 import { useTemplates } from './hooks/useTemplates';
 import { useCapture } from './hooks/useCapture';
 import { renderTemplate } from './escape';
 import { extractVariablesInOrder } from './template-utils';
 import { checkForExternalAssets } from './cors-check';
+import { loadFontScaleForTemplate, saveFontScaleForTemplate } from './storage';
 import type { CaptureSize } from './types';
 import instructions from "./template_instructions.md?raw";
 
@@ -31,13 +33,21 @@ export function App() {
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [captureSize, setCaptureSize] = useState<CaptureSize | null>(null);
   const [copyForAIStatus, setCopyForAIStatus] = useState<'idle' | 'copying' | 'success'>('idle');
+  const [fontScale, setFontScale] = useState<FontScaleConfig>({
+    mode: 'global',
+    global: 1,
+    perField: {},
+  });
 
   const previewRef = useRef<HTMLIFrameElement>(null);
 
-  // Reset input values when template changes
+  // Reset input values and load font scale when template changes
   useEffect(() => {
     setInputValues({});
     setIframeLoaded(false);
+    if (currentTemplate) {
+      setFontScale(loadFontScaleForTemplate(currentTemplate.name));
+    }
   }, [currentTemplate]);
 
   const variables = useMemo(() => {
@@ -52,8 +62,8 @@ export function App() {
 
   const renderedHtml = useMemo(() => {
     if (!currentTemplate) return '';
-    return renderTemplate(currentTemplate.html, inputValues);
-  }, [currentTemplate, inputValues]);
+    return renderTemplate(currentTemplate.html, inputValues, fontScale);
+  }, [currentTemplate, inputValues, fontScale]);
 
   const { capture, copyToClipboard, canCapture, captureTitle, clipboardSupported, copyStatus } = useCapture({
     previewRef,
@@ -70,6 +80,24 @@ export function App() {
   const handleSizeChange = useCallback((size: CaptureSize | null) => {
     setCaptureSize(size);
   }, []);
+
+  const handleFontScaleChange = useCallback((config: FontScaleConfig) => {
+    setFontScale(config);
+    if (currentTemplate) {
+      saveFontScaleForTemplate(currentTemplate.name, config);
+    }
+  }, [currentTemplate]);
+
+  const handlePerFieldFontScaleChange = useCallback((variable: string, scale: number) => {
+    const newConfig = {
+      ...fontScale,
+      perField: { ...fontScale.perField, [variable]: scale },
+    };
+    setFontScale(newConfig);
+    if (currentTemplate) {
+      saveFontScaleForTemplate(currentTemplate.name, newConfig);
+    }
+  }, [fontScale, currentTemplate]);
 
   const handleInputChange = (variable: string, value: string) => {
     setInputValues((prev) => ({ ...prev, [variable]: value }));
@@ -120,6 +148,11 @@ export function App() {
 
             <SizeSettings onChange={handleSizeChange} />
 
+            <FontScaleSlider
+              value={fontScale}
+              onChange={handleFontScaleChange}
+            />
+
             <div className="capture-buttons">
               <button
                 onClick={capture}
@@ -157,6 +190,8 @@ export function App() {
               variables={variables}
               values={inputValues}
               onChange={handleInputChange}
+              fontScale={fontScale}
+              onFontScaleChange={handlePerFieldFontScaleChange}
             />
 
             <WarningBanner type="cors" externalUrls={externalUrls} />

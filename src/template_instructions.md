@@ -174,11 +174,11 @@ Use this structure unless you have a strong reason not to:
       word-wrap: break-word;
     }
     .title {
-      font-size: clamp(1.2rem, 5vw, 4rem);
+      font-size: calc(clamp(1.2rem, 5vw, 4rem) * var(--font-scale, 1));
       margin: 0 0 3vmin 0;
     }
     .subtitle {
-      font-size: clamp(0.9rem, 3vw, 2.2rem);
+      font-size: calc(clamp(0.9rem, 3vw, 2.2rem) * var(--font-scale, 1));
       opacity: 0.9;
     }
   </style>
@@ -194,7 +194,37 @@ Use this structure unless you have a strong reason not to:
 
 ---
 
-## 8) Final constraints
+## 8) Font scaling support
+
+The app provides a font scaling feature that allows users to adjust text size:
+
+### How it works
+
+* **Global mode**: The app injects a `--font-scale` CSS variable and modifies the root font-size
+* **Per-field mode**: Individual placeholder values are wrapped in styled spans
+
+### Making templates scale-aware
+
+To support font scaling properly, templates should use relative units (`em`, `rem`) so they respond to the root font-size changes.
+
+For more precise control, templates can reference the `--font-scale` CSS variable directly:
+
+```css
+/* Incorporate font scale into clamp values */
+font-size: calc(clamp(1.2rem, 5vw, 4rem) * var(--font-scale, 1));
+```
+
+The `var(--font-scale, 1)` provides a fallback of 1 (no scaling) when the variable isn't set.
+
+### Best practices
+
+* Use `rem` or `em` for font sizes so they respond to root scaling
+* If using `clamp()` for responsive typography, multiply by `var(--font-scale, 1)` for user-adjustable scaling
+* Ensure text containers can accommodate larger text (avoid fixed heights)
+
+---
+
+## 9) Final constraints
 
 * Output must be valid HTML.
 * Inline CSS only.
