@@ -88,11 +88,17 @@ export function App() {
                 isCustomSelected={isCustomSelected}
                 onAdd={addTemplate}
                 onRemove={removeTemplate}
-                onCapture={capture}
-                captureDisabled={!canCapture}
-                captureTitle={captureTitle}
               />
             </div>
+
+            <button
+              onClick={capture}
+              disabled={!canCapture}
+              title={captureTitle}
+              style={{ marginTop: 'var(--spacing-md)', width: '100%' }}
+            >
+              Capture Preview
+            </button>
 
             <JavaScriptToggle enabled={jsEnabled} onChange={handleJsToggle} />
 

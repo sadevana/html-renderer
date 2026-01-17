@@ -5,18 +5,12 @@ interface TemplateControlsProps {
   isCustomSelected: boolean;
   onAdd: (template: Template) => void;
   onRemove: () => void;
-  onCapture: () => void;
-  captureDisabled: boolean;
-  captureTitle: string;
 }
 
 export function TemplateControls({
   isCustomSelected,
   onAdd,
   onRemove,
-  onCapture,
-  captureDisabled,
-  captureTitle,
 }: TemplateControlsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,13 +55,6 @@ export function TemplateControls({
           Remove Template
         </button>
       )}
-      <button
-        onClick={onCapture}
-        disabled={captureDisabled}
-        title={captureTitle}
-      >
-        Capture Preview
-      </button>
     </div>
   );
 }
