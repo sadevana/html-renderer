@@ -11,7 +11,7 @@ export const builtInTemplates: Template[] = [
     <title>Сколько попыток?</title>
     <style>
         body {
-            font-family: 'Montserrat', sans-serif;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
             background: linear-gradient(135deg, #4b0082, #6a5acd);
             display: flex;
             justify-content: center;
@@ -81,7 +81,7 @@ export const builtInTemplates: Template[] = [
     <title>Цитата</title>
     <style>
         body {
-            font-family: 'Montserrat', sans-serif;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
             background-color: #5A4FCF;
             color: white;
             display: flex;
@@ -98,7 +98,7 @@ export const builtInTemplates: Template[] = [
             background: rgba(255, 255, 255, 0.1);
             padding: 5vmin;
             border-radius: 2vmin;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 0.4vmin 1vmin rgba(0, 0, 0, 0.2);
             overflow-wrap: break-word;
             word-wrap: break-word;
         }
