@@ -13,6 +13,7 @@ import { renderTemplate } from './escape';
 import { extractVariablesInOrder } from './template-utils';
 import { checkForExternalAssets } from './cors-check';
 import type { CaptureSize } from './types';
+import instructions from "./template_instructions.md?raw";
 
 export function App() {
   const {
@@ -29,6 +30,7 @@ export function App() {
   const [jsEnabled, setJsEnabled] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [captureSize, setCaptureSize] = useState<CaptureSize | null>(null);
+  const [copyForAIStatus, setCopyForAIStatus] = useState<'idle' | 'copying' | 'success'>('idle');
 
   const previewRef = useRef<HTMLIFrameElement>(null);
 
@@ -82,6 +84,20 @@ export function App() {
     setIframeLoaded(false);
   };
 
+  const copyForAI = async () => {
+    setCopyForAIStatus('copying');
+
+    try {
+      await navigator.clipboard.writeText(instructions);
+      setCopyForAIStatus('success');
+      setTimeout(() => setCopyForAIStatus('idle'), 2000);
+    } catch {
+      setCopyForAIStatus('idle');
+    }
+  };
+
+  const copyForAIButtonText = copyForAIStatus === 'copying' ? 'Copying...' : copyForAIStatus === 'success' ? 'Copied!' : 'Copy for AI Generation';
+
   return (
     <main className="container">
       <Header />
@@ -120,6 +136,17 @@ export function App() {
               >
                 {copyButtonText}
               </button>
+            </div>
+
+            <div className="ai-copy-section">
+              <button
+                onClick={copyForAI}
+                disabled={copyForAIStatus === 'copying'}
+                className={`secondary ${copyForAIStatus === 'success' ? 'success' : ''}`}
+              >
+                {copyForAIButtonText}
+              </button>
+              <span className="help-icon" title="Copies template guidelines for AI assistants to generate compatible HTML templates with proper viewport units and variable syntax.">?</span>
             </div>
 
             <JavaScriptToggle enabled={jsEnabled} onChange={handleJsToggle} />
