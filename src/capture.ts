@@ -1,12 +1,97 @@
 import html2canvas from 'html2canvas';
-import type { Template } from './types';
+import type { Template, CaptureSize } from './types';
+
+interface CopyResult {
+  success: boolean;
+  error?: string;
+}
+
+async function createCanvas(
+  iframe: HTMLIFrameElement,
+  captureSize: CaptureSize | null
+): Promise<HTMLCanvasElement> {
+  const iframeDoc = iframe.contentDocument;
+  if (!iframeDoc) {
+    throw new Error('Cannot access preview content');
+  }
+
+  const root = iframeDoc.documentElement;
+
+  const canvasOptions = captureSize
+    ? {
+        windowWidth: captureSize.width,
+        windowHeight: captureSize.height,
+        width: captureSize.width,
+        height: captureSize.height,
+        scale: 1,
+        useCORS: true,
+        logging: false,
+      }
+    : {
+        windowWidth: root.scrollWidth,
+        windowHeight: root.scrollHeight,
+        width: root.scrollWidth,
+        height: root.scrollHeight,
+        scale: window.devicePixelRatio,
+        useCORS: true,
+        logging: false,
+      };
+
+  return html2canvas(root, canvasOptions);
+}
+
+export async function copyPreviewToClipboard(
+  iframe: HTMLIFrameElement,
+  jsEnabled: boolean,
+  iframeLoaded: boolean,
+  captureSize: CaptureSize | null
+): Promise<CopyResult> {
+  if (jsEnabled) {
+    return { success: false, error: 'Copy is disabled when JavaScript is enabled for security reasons.' };
+  }
+
+  if (!iframeLoaded) {
+    return { success: false, error: 'Please wait for preview to load' };
+  }
+
+  try {
+    const canvas = await createCanvas(iframe, captureSize);
+
+    return new Promise((resolve) => {
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          resolve({ success: false, error: 'Failed to copy. Try downloading instead.' });
+          return;
+        }
+
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          resolve({ success: true });
+        } catch (err) {
+          console.error('Clipboard write failed:', err);
+          if (err instanceof Error && err.name === 'NotAllowedError') {
+            resolve({ success: false, error: 'Clipboard access denied. Please allow clipboard permissions.' });
+          } else {
+            resolve({ success: false, error: 'Failed to copy. Try downloading instead.' });
+          }
+        }
+      }, 'image/png');
+    });
+  } catch (error) {
+    console.error('Failed to create canvas for clipboard:', error);
+    return { success: false, error: 'Failed to copy. Try downloading instead.' };
+  }
+}
 
 export async function capturePreview(
   iframe: HTMLIFrameElement,
   template: Template,
   inputValues: Record<string, string>,
   jsEnabled: boolean,
-  iframeLoaded: boolean
+  iframeLoaded: boolean,
+  captureSize: CaptureSize | null
 ): Promise<void> {
   if (jsEnabled) {
     alert('Capture is disabled when JavaScript is enabled for security reasons.');
@@ -18,24 +103,8 @@ export async function capturePreview(
     return;
   }
 
-  const iframeDoc = iframe.contentDocument;
-  if (!iframeDoc) {
-    alert('Cannot access preview content');
-    return;
-  }
-
-  const root = iframeDoc.documentElement;
-
   try {
-    const canvas = await html2canvas(root, {
-      windowWidth: root.scrollWidth,
-      windowHeight: root.scrollHeight,
-      width: root.scrollWidth,
-      height: root.scrollHeight,
-      scale: window.devicePixelRatio,
-      useCORS: true,
-      logging: false,
-    });
+    const canvas = await createCanvas(iframe, captureSize);
 
     // Safe filename generation
     const firstValue = Object.values(inputValues)[0] ?? 'preview';

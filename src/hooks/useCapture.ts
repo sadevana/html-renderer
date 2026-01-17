@@ -1,6 +1,8 @@
-import { useCallback, useMemo, RefObject } from 'react';
-import type { Template } from '../types';
-import { capturePreview } from '../capture';
+import { useCallback, useMemo, useState, RefObject } from 'react';
+import type { Template, CaptureSize } from '../types';
+import { capturePreview, copyPreviewToClipboard } from '../capture';
+
+type CopyStatus = 'idle' | 'copying' | 'success' | 'error';
 
 interface UseCaptureParams {
   previewRef: RefObject<HTMLIFrameElement | null>;
@@ -8,12 +10,16 @@ interface UseCaptureParams {
   inputValues: Record<string, string>;
   jsEnabled: boolean;
   iframeLoaded: boolean;
+  captureSize: CaptureSize | null;
 }
 
 interface UseCaptureReturn {
   capture: () => void;
+  copyToClipboard: () => void;
   canCapture: boolean;
   captureTitle: string;
+  clipboardSupported: boolean;
+  copyStatus: CopyStatus;
 }
 
 export function useCapture({
@@ -22,8 +28,17 @@ export function useCapture({
   inputValues,
   jsEnabled,
   iframeLoaded,
+  captureSize,
 }: UseCaptureParams): UseCaptureReturn {
+  const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle');
+
   const canCapture = !jsEnabled && iframeLoaded && currentTemplate !== null;
+
+  const clipboardSupported = useMemo(() => {
+    return typeof navigator !== 'undefined' &&
+      'clipboard' in navigator &&
+      typeof ClipboardItem !== 'undefined';
+  }, []);
 
   const captureTitle = useMemo(() => {
     if (jsEnabled) {
@@ -45,9 +60,32 @@ export function useCapture({
       currentTemplate,
       inputValues,
       jsEnabled,
-      iframeLoaded
+      iframeLoaded,
+      captureSize
     );
-  }, [previewRef, currentTemplate, inputValues, jsEnabled, iframeLoaded]);
+  }, [previewRef, currentTemplate, inputValues, jsEnabled, iframeLoaded, captureSize]);
 
-  return { capture, canCapture, captureTitle };
+  const copyToClipboard = useCallback(async () => {
+    if (!previewRef.current || !canCapture) return;
+
+    setCopyStatus('copying');
+
+    const result = await copyPreviewToClipboard(
+      previewRef.current,
+      jsEnabled,
+      iframeLoaded,
+      captureSize
+    );
+
+    if (result.success) {
+      setCopyStatus('success');
+      setTimeout(() => setCopyStatus('idle'), 2000);
+    } else {
+      setCopyStatus('error');
+      alert(result.error);
+      setTimeout(() => setCopyStatus('idle'), 2000);
+    }
+  }, [previewRef, canCapture, jsEnabled, iframeLoaded, captureSize]);
+
+  return { capture, copyToClipboard, canCapture, captureTitle, clipboardSupported, copyStatus };
 }

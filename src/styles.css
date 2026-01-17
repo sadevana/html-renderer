@@ -234,3 +234,81 @@ input[type="checkbox"][role="switch"]:checked::before {
 .margin-bottom-lg {
   margin-bottom: var(--spacing-lg);
 }
+
+/* Size Settings */
+.size-settings {
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.size-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.size-settings-header label {
+  margin-bottom: 0;
+}
+
+.advanced-toggle {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.advanced-toggle:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.custom-dimensions {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+}
+
+.dimension-input {
+  flex: 1;
+}
+
+.dimension-input label {
+  font-size: 0.875rem;
+  font-weight: normal;
+  color: var(--color-text-muted);
+}
+
+.dimension-separator {
+  padding-bottom: var(--spacing-sm);
+  color: var(--color-text-muted);
+}
+
+.size-preview {
+  margin-top: var(--spacing-sm);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* Capture Buttons */
+.capture-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.capture-buttons button {
+  flex: 1;
+}
+
+button.success {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+button.success:hover {
+  background-color: #157347;
+  border-color: #157347;
+}

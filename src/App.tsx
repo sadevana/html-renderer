@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { TemplateSelector } from './components/TemplateSelector';
 import { TemplateControls } from './components/TemplateControls';
@@ -6,11 +6,13 @@ import { InputFields } from './components/InputFields';
 import { JavaScriptToggle } from './components/JavaScriptToggle';
 import { WarningBanner } from './components/WarningBanner';
 import { PreviewPane } from './components/PreviewPane';
+import { SizeSettings } from './components/SizeSettings';
 import { useTemplates } from './hooks/useTemplates';
 import { useCapture } from './hooks/useCapture';
 import { renderTemplate } from './escape';
 import { extractVariablesInOrder } from './template-utils';
 import { checkForExternalAssets } from './cors-check';
+import type { CaptureSize } from './types';
 
 export function App() {
   const {
@@ -26,6 +28,7 @@ export function App() {
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [jsEnabled, setJsEnabled] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [captureSize, setCaptureSize] = useState<CaptureSize | null>(null);
 
   const previewRef = useRef<HTMLIFrameElement>(null);
 
@@ -50,13 +53,21 @@ export function App() {
     return renderTemplate(currentTemplate.html, inputValues);
   }, [currentTemplate, inputValues]);
 
-  const { capture, canCapture, captureTitle } = useCapture({
+  const { capture, copyToClipboard, canCapture, captureTitle, clipboardSupported, copyStatus } = useCapture({
     previewRef,
     currentTemplate,
     inputValues,
     jsEnabled,
     iframeLoaded,
+    captureSize,
   });
+
+  const copyButtonText = copyStatus === 'copying' ? 'Copying...' : copyStatus === 'success' ? 'Copied!' : 'Copy to Clipboard';
+  const copyButtonTitle = !clipboardSupported ? 'Clipboard API not supported in this browser' : captureTitle;
+
+  const handleSizeChange = useCallback((size: CaptureSize | null) => {
+    setCaptureSize(size);
+  }, []);
 
   const handleInputChange = (variable: string, value: string) => {
     setInputValues((prev) => ({ ...prev, [variable]: value }));
@@ -91,14 +102,25 @@ export function App() {
               />
             </div>
 
-            <button
-              onClick={capture}
-              disabled={!canCapture}
-              title={captureTitle}
-              style={{ marginTop: 'var(--spacing-md)', width: '100%' }}
-            >
-              Capture Preview
-            </button>
+            <SizeSettings onChange={handleSizeChange} />
+
+            <div className="capture-buttons">
+              <button
+                onClick={capture}
+                disabled={!canCapture}
+                title={captureTitle}
+              >
+                Download PNG
+              </button>
+              <button
+                onClick={copyToClipboard}
+                disabled={!canCapture || !clipboardSupported || copyStatus === 'copying'}
+                title={copyButtonTitle}
+                className={copyStatus === 'success' ? 'success' : ''}
+              >
+                {copyButtonText}
+              </button>
+            </div>
 
             <JavaScriptToggle enabled={jsEnabled} onChange={handleJsToggle} />
 
