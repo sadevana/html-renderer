@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { TemplateSelector } from './components/TemplateSelector';
 import { TemplateControls } from './components/TemplateControls';
@@ -7,14 +7,15 @@ import { WarningBanner } from './components/WarningBanner';
 import { PreviewPane } from './components/PreviewPane';
 import { SizeSettings } from './components/SizeSettings';
 import { FontScaleSlider } from './components/FontScaleSlider';
+import { CopyButton } from './components/CopyButton';
 import { useTemplates } from './hooks/useTemplates';
-import { useCapture } from './hooks/useCapture';
 import { useSettings } from './hooks/useSettings';
 import { renderTemplate } from './escape';
 import { extractVariablesInOrder } from './template-utils';
 import { checkForExternalAssets } from './cors-check';
 import { getSizeForCapture } from './types';
 import { SIZE_PRESETS } from './presets';
+import { renderPreviewToBlob, downloadBlob } from './capture';
 import instructions from "./template_instructions.md?raw";
 
 export function App() {
@@ -32,7 +33,6 @@ export function App() {
 
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [iframeLoaded, setIframeLoaded] = useState(false);
-  const [copyForAIStatus, setCopyForAIStatus] = useState<'idle' | 'copying' | 'success'>('idle');
 
   const previewRef = useRef<HTMLIFrameElement>(null);
 
@@ -59,16 +59,39 @@ export function App() {
 
   const captureSize = getSizeForCapture(settings.size, SIZE_PRESETS);
 
-  const { capture, copyToClipboard, canCapture, captureTitle, clipboardSupported, copyStatus } = useCapture({
-    previewRef,
-    currentTemplate,
-    inputValues,
-    iframeLoaded,
-    captureSize,
-  });
+  const canCapture = iframeLoaded && currentTemplate !== null;
 
-  const copyButtonText = copyStatus === 'copying' ? 'Copying...' : copyStatus === 'success' ? 'Copied!' : 'Copy to Clipboard';
-  const copyButtonTitle = !clipboardSupported ? 'Clipboard API not supported in this browser' : captureTitle;
+  const captureTitle = useMemo(() => {
+    if (!iframeLoaded) return 'Waiting for preview to load';
+    if (!currentTemplate) return 'No template selected';
+    return '';
+  }, [iframeLoaded, currentTemplate]);
+
+  const generateFilename = useCallback(() => {
+    if (!currentTemplate) return 'preview.png';
+    const firstValue = Object.values(inputValues)[0] ?? 'preview';
+    const sanitizedValue = firstValue.trim().replace(/\s+/g, '_').slice(0, 50) || 'preview';
+    const safeName = currentTemplate.name.replace(/[^a-zA-Z0-9]/g, '_');
+    return `${safeName}-${sanitizedValue}-${String(Date.now())}.png`;
+  }, [currentTemplate, inputValues]);
+
+  const handleDownload = useCallback(async () => {
+    if (!previewRef.current || !canCapture) return;
+    try {
+      const blob = await renderPreviewToBlob(previewRef.current, captureSize);
+      downloadBlob(blob, generateFilename());
+    } catch (error) {
+      console.error('Failed to capture preview:', error);
+      alert('Failed to capture preview. Please try again.');
+    }
+  }, [canCapture, captureSize, generateFilename]);
+
+  const getPreviewBlob = useCallback(async () => {
+    if (!previewRef.current) throw new Error('Preview not available');
+    return renderPreviewToBlob(previewRef.current, captureSize);
+  }, [captureSize]);
+
+  const getInstructions = useCallback(() => Promise.resolve(instructions), []);
 
   const handleInputChange = (variable: string, value: string) => {
     setInputValues((prev) => ({ ...prev, [variable]: value }));
@@ -77,21 +100,6 @@ export function App() {
   const handlePreviewLoad = () => {
     setIframeLoaded(true);
   };
-
-  const copyForAI = () => {
-    setCopyForAIStatus('copying');
-
-    navigator.clipboard.writeText(instructions)
-      .then(() => {
-        setCopyForAIStatus('success');
-        setTimeout(() => { setCopyForAIStatus('idle'); }, 2000);
-      })
-      .catch(() => {
-        setCopyForAIStatus('idle');
-      });
-  };
-
-  const copyForAIButtonText = copyForAIStatus === 'copying' ? 'Copying...' : copyForAIStatus === 'success' ? 'Copied!' : 'Copy for AI Generation';
 
   return (
     <main className="container">
@@ -122,30 +130,26 @@ export function App() {
 
             <div className="capture-buttons">
               <button
-                onClick={capture}
+                onClick={() => void handleDownload()}
                 disabled={!canCapture}
                 title={captureTitle}
               >
                 Download PNG
               </button>
-              <button
-                onClick={copyToClipboard}
-                disabled={!canCapture || !clipboardSupported || copyStatus === 'copying'}
-                title={copyButtonTitle}
-                className={copyStatus === 'success' ? 'success' : ''}
-              >
-                {copyButtonText}
-              </button>
+              <CopyButton
+                getDataFn={getPreviewBlob}
+                label="Copy to Clipboard"
+                disabled={!canCapture}
+                title={captureTitle}
+              />
             </div>
 
             <div className="ai-copy-section">
-              <button
-                onClick={copyForAI}
-                disabled={copyForAIStatus === 'copying'}
-                className={`secondary ${copyForAIStatus === 'success' ? 'success' : ''}`}
-              >
-                {copyForAIButtonText}
-              </button>
+              <CopyButton
+                getDataFn={getInstructions}
+                label="Copy for AI Generation"
+                className="secondary"
+              />
               <span className="help-icon" title="Copies template guidelines for AI assistants to generate compatible HTML templates with proper viewport units and variable syntax.">?</span>
             </div>
 
