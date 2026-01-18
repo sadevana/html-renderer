@@ -1,15 +1,9 @@
-interface FontScaleConfig {
-  mode: 'global' | 'perField';
-  global: number;
-  perField: Record<string, number>;
-}
+import type { FontScaleConfig } from '../types';
 
 interface FontScaleSliderProps {
   value: FontScaleConfig;
   onChange: (config: FontScaleConfig) => void;
 }
-
-export type { FontScaleConfig };
 
 export function FontScaleSlider({ value, onChange }: FontScaleSliderProps) {
   const handleGlobalChange = (scale: number) => {

@@ -1,5 +1,5 @@
 import { humanizeLabel } from '../template-utils';
-import type { FontScaleConfig } from './FontScaleSlider';
+import type { FontScaleConfig } from '../types';
 
 interface InputFieldsProps {
   variables: string[];

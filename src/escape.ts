@@ -1,4 +1,4 @@
-import type { FontScaleConfig } from './components/FontScaleSlider';
+import type { FontScaleConfig } from './types';
 
 const escapeMap: Record<string, string> = {
   '&': '&amp;',

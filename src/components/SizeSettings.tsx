@@ -1,49 +1,70 @@
-import { useState, useEffect } from 'react';
-import type { CaptureSize } from '../types';
+import type { SizeConfig } from '../types';
 import { SIZE_PRESETS } from '../presets';
 
 interface SizeSettingsProps {
-  onChange: (size: CaptureSize | null) => void;
+  value: SizeConfig;
+  onChange: (config: SizeConfig) => void;
 }
 
-export function SizeSettings({ onChange }: SizeSettingsProps) {
-  const [isAdvanced, setIsAdvanced] = useState(false);
-  const [selectedPresetId, setSelectedPresetId] = useState('auto');
-  const [customWidth, setCustomWidth] = useState(1080);
-  const [customHeight, setCustomHeight] = useState(1920);
-
-  useEffect(() => {
-    if (isAdvanced) {
-      onChange({ width: customWidth, height: customHeight });
-    } else {
-      const preset = SIZE_PRESETS.find((p) => p.id === selectedPresetId);
-      if (preset?.id === 'auto') {
-        onChange(null);
-      } else if (preset) {
-        onChange({ width: preset.width, height: preset.height });
-      }
-    }
-  }, [isAdvanced, selectedPresetId, customWidth, customHeight, onChange]);
+export function SizeSettings({ value, onChange }: SizeSettingsProps) {
+  const isAdvanced = value.type === 'advanced';
 
   const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const presetId = e.target.value;
-    setSelectedPresetId(presetId);
-    const preset = SIZE_PRESETS.find((p) => p.id === presetId);
-    if (preset && preset.id !== 'auto') {
-      setCustomWidth(preset.width);
-      setCustomHeight(preset.height);
+    if (presetId === 'auto') {
+      onChange({ type: 'auto' });
+    } else {
+      onChange({ type: 'preset', presetId });
     }
   };
 
   const handleToggleMode = () => {
-    setIsAdvanced(!isAdvanced);
+    if (isAdvanced) {
+      // Advanced -> Preset: default to auto
+      onChange({ type: 'auto' });
+    } else {
+      // Preset/Auto -> Advanced: get dimensions from current setting
+      let width = 1080;
+      let height = 1920;
+      if (value.type === 'preset') {
+        const preset = SIZE_PRESETS.find((p) => p.id === value.presetId);
+        if (preset) {
+          width = preset.width;
+          height = preset.height;
+        }
+      }
+      onChange({ type: 'advanced', width, height });
+    }
   };
 
-  const currentDimensions = isAdvanced
-    ? `${String(customWidth)} × ${String(customHeight)} px`
-    : selectedPresetId === 'auto'
-      ? 'Auto (based on content)'
-      : `${String(SIZE_PRESETS.find((p) => p.id === selectedPresetId)?.width ?? 0)} × ${String(SIZE_PRESETS.find((p) => p.id === selectedPresetId)?.height ?? 0)} px`;
+  const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const width = Math.max(1, parseInt(e.target.value) || 1);
+    if (value.type === 'advanced') {
+      onChange({ type: 'advanced', width, height: value.height });
+    }
+  };
+
+  const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const height = Math.max(1, parseInt(e.target.value) || 1);
+    if (value.type === 'advanced') {
+      onChange({ type: 'advanced', width: value.width, height });
+    }
+  };
+
+  const currentDimensions = (() => {
+    switch (value.type) {
+      case 'auto':
+        return 'Auto (based on content)';
+      case 'preset': {
+        const preset = SIZE_PRESETS.find((p) => p.id === value.presetId);
+        return preset
+          ? `${String(preset.width)} × ${String(preset.height)} px`
+          : 'Unknown preset';
+      }
+      case 'advanced':
+        return `${String(value.width)} × ${String(value.height)} px`;
+    }
+  })();
 
   return (
     <div className="size-settings">
@@ -54,7 +75,7 @@ export function SizeSettings({ onChange }: SizeSettingsProps) {
         </button>
       </div>
 
-      {isAdvanced ? (
+      {value.type === 'advanced' ? (
         <div className="custom-dimensions">
           <div className="dimension-input">
             <label htmlFor="width-input">Width (px)</label>
@@ -62,8 +83,8 @@ export function SizeSettings({ onChange }: SizeSettingsProps) {
               id="width-input"
               type="number"
               min="1"
-              value={customWidth}
-              onChange={(e) => { setCustomWidth(Math.max(1, parseInt(e.target.value) || 1)); }}
+              value={value.width}
+              onChange={handleWidthChange}
             />
           </div>
           <span className="dimension-separator">×</span>
@@ -73,13 +94,16 @@ export function SizeSettings({ onChange }: SizeSettingsProps) {
               id="height-input"
               type="number"
               min="1"
-              value={customHeight}
-              onChange={(e) => { setCustomHeight(Math.max(1, parseInt(e.target.value) || 1)); }}
+              value={value.height}
+              onChange={handleHeightChange}
             />
           </div>
         </div>
       ) : (
-        <select value={selectedPresetId} onChange={handlePresetChange}>
+        <select
+          value={value.type === 'preset' ? value.presetId : 'auto'}
+          onChange={handlePresetChange}
+        >
           {SIZE_PRESETS.map((preset) => (
             <option key={preset.id} value={preset.id}>
               {preset.name}

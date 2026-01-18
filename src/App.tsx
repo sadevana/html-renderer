@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { TemplateSelector } from './components/TemplateSelector';
 import { TemplateControls } from './components/TemplateControls';
@@ -6,14 +6,15 @@ import { InputFields } from './components/InputFields';
 import { WarningBanner } from './components/WarningBanner';
 import { PreviewPane } from './components/PreviewPane';
 import { SizeSettings } from './components/SizeSettings';
-import { FontScaleSlider, type FontScaleConfig } from './components/FontScaleSlider';
+import { FontScaleSlider } from './components/FontScaleSlider';
 import { useTemplates } from './hooks/useTemplates';
 import { useCapture } from './hooks/useCapture';
+import { useSettings } from './hooks/useSettings';
 import { renderTemplate } from './escape';
 import { extractVariablesInOrder } from './template-utils';
 import { checkForExternalAssets } from './cors-check';
-import { loadFontScaleForTemplate, saveFontScaleForTemplate } from './storage';
-import type { CaptureSize } from './types';
+import { getSizeForCapture } from './types';
+import { SIZE_PRESETS } from './presets';
 import instructions from "./template_instructions.md?raw";
 
 export function App() {
@@ -27,25 +28,18 @@ export function App() {
     getAllTemplates,
   } = useTemplates();
 
+  const { settings, setSize, setFontScale, setPerFieldScale } = useSettings(currentTemplate?.name);
+
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [iframeLoaded, setIframeLoaded] = useState(false);
-  const [captureSize, setCaptureSize] = useState<CaptureSize | null>(null);
   const [copyForAIStatus, setCopyForAIStatus] = useState<'idle' | 'copying' | 'success'>('idle');
-  const [fontScale, setFontScale] = useState<FontScaleConfig>({
-    mode: 'global',
-    global: 1,
-    perField: {},
-  });
 
   const previewRef = useRef<HTMLIFrameElement>(null);
 
-  // Reset input values and load font scale when template changes
+  // Reset input values when template changes
   useEffect(() => {
     setInputValues({});
     setIframeLoaded(false);
-    if (currentTemplate) {
-      setFontScale(loadFontScaleForTemplate(currentTemplate.name));
-    }
   }, [currentTemplate]);
 
   const variables = useMemo(() => {
@@ -60,8 +54,10 @@ export function App() {
 
   const renderedHtml = useMemo(() => {
     if (!currentTemplate) return '';
-    return renderTemplate(currentTemplate.html, inputValues, fontScale);
-  }, [currentTemplate, inputValues, fontScale]);
+    return renderTemplate(currentTemplate.html, inputValues, settings.fontScale);
+  }, [currentTemplate, inputValues, settings.fontScale]);
+
+  const captureSize = getSizeForCapture(settings.size, SIZE_PRESETS);
 
   const { capture, copyToClipboard, canCapture, captureTitle, clipboardSupported, copyStatus } = useCapture({
     previewRef,
@@ -73,28 +69,6 @@ export function App() {
 
   const copyButtonText = copyStatus === 'copying' ? 'Copying...' : copyStatus === 'success' ? 'Copied!' : 'Copy to Clipboard';
   const copyButtonTitle = !clipboardSupported ? 'Clipboard API not supported in this browser' : captureTitle;
-
-  const handleSizeChange = useCallback((size: CaptureSize | null) => {
-    setCaptureSize(size);
-  }, []);
-
-  const handleFontScaleChange = useCallback((config: FontScaleConfig) => {
-    setFontScale(config);
-    if (currentTemplate) {
-      saveFontScaleForTemplate(currentTemplate.name, config);
-    }
-  }, [currentTemplate]);
-
-  const handlePerFieldFontScaleChange = useCallback((variable: string, scale: number) => {
-    const newConfig = {
-      ...fontScale,
-      perField: { ...fontScale.perField, [variable]: scale },
-    };
-    setFontScale(newConfig);
-    if (currentTemplate) {
-      saveFontScaleForTemplate(currentTemplate.name, newConfig);
-    }
-  }, [fontScale, currentTemplate]);
 
   const handleInputChange = (variable: string, value: string) => {
     setInputValues((prev) => ({ ...prev, [variable]: value }));
@@ -139,11 +113,11 @@ export function App() {
               />
             </div>
 
-            <SizeSettings onChange={handleSizeChange} />
+            <SizeSettings value={settings.size} onChange={setSize} />
 
             <FontScaleSlider
-              value={fontScale}
-              onChange={handleFontScaleChange}
+              value={settings.fontScale}
+              onChange={setFontScale}
             />
 
             <div className="capture-buttons">
@@ -179,8 +153,8 @@ export function App() {
               variables={variables}
               values={inputValues}
               onChange={handleInputChange}
-              fontScale={fontScale}
-              onFontScaleChange={handlePerFieldFontScaleChange}
+              fontScale={settings.fontScale}
+              onFontScaleChange={setPerFieldScale}
             />
 
             <WarningBanner externalUrls={externalUrls} />
