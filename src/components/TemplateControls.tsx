@@ -1,14 +1,13 @@
 import { useRef } from 'react';
-import type { Template } from '../types';
 
 interface TemplateControlsProps {
-  isCustomSelected: boolean;
-  onAdd: (template: Template) => void;
+  canRemove: boolean;
+  onAdd: (name: string, html: string) => void;
   onRemove: () => void;
 }
 
 export function TemplateControls({
-  isCustomSelected,
+  canRemove,
   onAdd,
   onRemove,
 }: TemplateControlsProps) {
@@ -24,7 +23,7 @@ export function TemplateControls({
 
     try {
       const content = await file.text();
-      onAdd({ name: file.name, html: content });
+      onAdd(file.name, content);
     } catch (error) {
       console.error('Failed to load template:', error);
       alert('Failed to load template. Please try again.');
@@ -50,7 +49,7 @@ export function TemplateControls({
         onChange={(e) => { void handleFileChange(e); }}
       />
       <button onClick={handleAddClick}>Add Template</button>
-      {isCustomSelected && (
+      {canRemove && (
         <button className="secondary" onClick={handleRemoveClick}>
           Remove Template
         </button>

@@ -1,11 +1,8 @@
 export interface Template {
+  id: string;
   name: string;
   html: string;
-}
-
-export interface TemplateSelection {
-  type: 'builtin' | 'custom';
-  index: number;
+  userDefined?: boolean;
 }
 
 export interface SizePreset {

@@ -20,16 +20,14 @@ import instructions from "./template_instructions.md?raw";
 
 export function App() {
   const {
-    selectedValue,
-    currentTemplate,
-    isCustomSelected,
-    setSelectedValue,
+    templates,
+    selected,
+    setSelected,
     addTemplate,
     removeTemplate,
-    getAllTemplates,
   } = useTemplates();
 
-  const { settings, setSize, setFontScale, setPerFieldScale } = useSettings(currentTemplate?.name);
+  const { settings, setSize, setFontScale, setPerFieldScale } = useSettings(selected.id);
 
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [iframeLoaded, setIframeLoaded] = useState(false);
@@ -40,40 +38,38 @@ export function App() {
   useEffect(() => {
     setInputValues({});
     setIframeLoaded(false);
-  }, [currentTemplate]);
+  }, [selected]);
 
-  const variables = useMemo(() => {
-    if (!currentTemplate) return [];
-    return extractVariablesInOrder(currentTemplate.html);
-  }, [currentTemplate]);
+  const variables = useMemo(
+    () => extractVariablesInOrder(selected.html),
+    [selected]
+  );
 
-  const externalUrls = useMemo(() => {
-    if (!currentTemplate) return [];
-    return checkForExternalAssets(currentTemplate.html);
-  }, [currentTemplate]);
+  const externalUrls = useMemo(
+    () => checkForExternalAssets(selected.html),
+    [selected]
+  );
 
-  const renderedHtml = useMemo(() => {
-    if (!currentTemplate) return '';
-    return renderTemplate(currentTemplate.html, inputValues, settings.fontScale);
-  }, [currentTemplate, inputValues, settings.fontScale]);
+  const renderedHtml = useMemo(
+    () => renderTemplate(selected.html, inputValues, settings.fontScale),
+    [selected, inputValues, settings.fontScale]
+  );
 
   const captureSize = getSizeForCapture(settings.size, SIZE_PRESETS);
 
-  const canCapture = iframeLoaded && currentTemplate !== null;
+  const canCapture = iframeLoaded;
 
   const captureTitle = useMemo(() => {
     if (!iframeLoaded) return 'Waiting for preview to load';
-    if (!currentTemplate) return 'No template selected';
     return '';
-  }, [iframeLoaded, currentTemplate]);
+  }, [iframeLoaded]);
 
   const generateFilename = useCallback(() => {
-    if (!currentTemplate) return 'preview.png';
     const firstValue = Object.values(inputValues)[0] ?? 'preview';
     const sanitizedValue = firstValue.trim().replace(/\s+/g, '_').slice(0, 50) || 'preview';
-    const safeName = currentTemplate.name.replace(/[^a-zA-Z0-9]/g, '_');
+    const safeName = selected.name.replace(/[^a-zA-Z0-9]/g, '_');
     return `${safeName}-${sanitizedValue}-${String(Date.now())}.png`;
-  }, [currentTemplate, inputValues]);
+  }, [selected, inputValues]);
 
   const handleDownload = useCallback(async () => {
     if (!previewRef.current || !canCapture) return;
@@ -110,12 +106,12 @@ export function App() {
           <article>
             <div className="template-controls">
               <TemplateSelector
-                selectedValue={selectedValue}
-                templates={getAllTemplates()}
-                onChange={setSelectedValue}
+                selected={selected}
+                templates={templates}
+                onChange={setSelected}
               />
               <TemplateControls
-                isCustomSelected={isCustomSelected}
+                canRemove={selected.userDefined}
                 onAdd={addTemplate}
                 onRemove={removeTemplate}
               />

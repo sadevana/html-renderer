@@ -51,8 +51,8 @@ function createStorageStore<T>(key: string, defaultValue: T) {
 
 const storeCache = new Map<string, ReturnType<typeof createStorageStore<TemplateSettings>>>();
 
-function getOrCreateStore(templateName: string) {
-  const key = `templateSettings:${templateName}`;
+function getOrCreateStore(templateId: string) {
+  const key = `templateSettings:${templateId}`;
   let store = storeCache.get(key);
   if (!store) {
     store = createStorageStore<TemplateSettings>(key, DEFAULT_SETTINGS);
@@ -72,11 +72,11 @@ function noop(): void {
   // No-op unsubscribe function
 }
 
-export function useSettings(templateName: string | undefined): UseSettingsResult {
+export function useSettings(templateId: string | undefined): UseSettingsResult {
   const store = useMemo(() => {
-    if (templateName === undefined || templateName === '') return null;
-    return getOrCreateStore(templateName);
-  }, [templateName]);
+    if (templateId === undefined || templateId === '') return null;
+    return getOrCreateStore(templateId);
+  }, [templateId]);
 
   const settings = useSyncExternalStore(
     useCallback((listener) => store?.subscribe(listener) ?? noop, [store]),

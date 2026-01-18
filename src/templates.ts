@@ -2,6 +2,7 @@ import type { Template } from './types';
 
 export const builtInTemplates: Template[] = [
   {
+    id: 'builtin-uncertainty-question',
     name: "Uncertainty question",
     html: `<!DOCTYPE html>
 <html lang="ru">
@@ -72,6 +73,7 @@ export const builtInTemplates: Template[] = [
 `
   },
   {
+    id: 'builtin-quote',
     name: "Quote",
     html: `<!DOCTYPE html>
 <html lang="ru">

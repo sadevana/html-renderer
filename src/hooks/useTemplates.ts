@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { Template } from '../types';
 import { builtInTemplates } from '../templates';
 import {
@@ -7,115 +7,81 @@ import {
   loadLastSelected,
   saveLastSelected,
   clearLastSelected,
+  generateTemplateId,
 } from '../storage';
 
-const BUILTIN_PREFIX = 'builtin';
-const CUSTOM_PREFIX = 'custom';
-const PREFIX_SEPARATOR = '-';
-
 export interface UseTemplatesReturn {
-  customTemplates: Template[];
-  selectedValue: string;
-  currentTemplate: Template | null;
-  isCustomSelected: boolean;
-  setSelectedValue: (value: string) => void;
-  addTemplate: (template: Template) => void;
+  templates: Template[];
+  selected: Template;
+  setSelected: (template: Template) => void;
+  addTemplate: (name: string, html: string) => void;
   removeTemplate: () => void;
-  getAllTemplates: () => { value: string; name: string }[];
 }
 
 export function useTemplates(): UseTemplatesReturn {
   const [customTemplates, setCustomTemplates] = useState<Template[]>(() => loadCustomTemplates());
-  const [selectedValue, setSelectedValueState] = useState<string>(() => {
+
+  const templates = useMemo(
+    () => [...builtInTemplates, ...customTemplates],
+    [customTemplates]
+  );
+
+  const [selectedId, setSelectedIdState] = useState<string>(() => {
     const lastSelected = loadLastSelected();
     if (lastSelected !== null && lastSelected !== '') {
-      // Validate that the selection still exists
-      const [type, indexStr] = lastSelected.split(PREFIX_SEPARATOR);
-      const index = parseInt(indexStr, 10);
-      if (type === BUILTIN_PREFIX && index < builtInTemplates.length) {
-        return lastSelected;
-      }
-      const stored = loadCustomTemplates();
-      if (type === CUSTOM_PREFIX && index < stored.length) {
+      if (templates.some((t) => t.id === lastSelected)) {
         return lastSelected;
       }
     }
-    return `${BUILTIN_PREFIX}${PREFIX_SEPARATOR}0`;
+    return builtInTemplates[0].id;
   });
 
-  const setSelectedValue = useCallback((value: string) => {
-    setSelectedValueState(value);
-    saveLastSelected(value);
+  const selected = useMemo(() => {
+    return templates.find((t) => t.id === selectedId) ?? builtInTemplates[0];
+  }, [templates, selectedId]);
+
+  const setSelected = useCallback((template: Template) => {
+    setSelectedIdState(template.id);
+    saveLastSelected(template.id);
   }, []);
 
-  const currentTemplate = (() => {
-    const [type, indexStr] = selectedValue.split(PREFIX_SEPARATOR);
-    const index = parseInt(indexStr, 10);
-    if (type === BUILTIN_PREFIX) {
-      return builtInTemplates[index] ?? null;
-    }
-    return customTemplates[index] ?? null;
-  })();
+  const addTemplate = useCallback((name: string, html: string) => {
+    const newTemplate: Template = {
+      id: generateTemplateId(),
+      name,
+      html,
+      userDefined: true,
+    };
 
-  const isCustomSelected = selectedValue.startsWith(CUSTOM_PREFIX);
-
-  const addTemplate = useCallback((template: Template) => {
-    setCustomTemplates(prev => {
-      const updated = [...prev, template];
+    setCustomTemplates((prev) => {
+      const updated = [...prev, newTemplate];
       saveCustomTemplates(updated);
-      const newValue = `${CUSTOM_PREFIX}${PREFIX_SEPARATOR}${String(updated.length - 1)}`;
-      setSelectedValueState(newValue);
-      saveLastSelected(newValue);
       return updated;
     });
+
+    setSelectedIdState(newTemplate.id);
+    saveLastSelected(newTemplate.id);
   }, []);
 
   const removeTemplate = useCallback(() => {
-    if (!isCustomSelected) return;
+    if (!selected.userDefined) return;
 
-    const [, indexStr] = selectedValue.split(PREFIX_SEPARATOR);
-    const index = parseInt(indexStr, 10);
-
-    setCustomTemplates(prev => {
-      const updated = prev.filter((_, i) => i !== index);
+    setCustomTemplates((prev) => {
+      const updated = prev.filter((t) => t.id !== selected.id);
       saveCustomTemplates(updated);
       return updated;
     });
 
     // Select first built-in template
-    const firstBuiltin = `${BUILTIN_PREFIX}${PREFIX_SEPARATOR}0`;
-    setSelectedValueState(firstBuiltin);
+    setSelectedIdState(builtInTemplates[0].id);
     clearLastSelected();
-  }, [isCustomSelected, selectedValue]);
-
-  const getAllTemplates = useCallback(() => {
-    const templates: { value: string; name: string }[] = [];
-
-    builtInTemplates.forEach((t, i) => {
-      templates.push({
-        value: `${BUILTIN_PREFIX}${PREFIX_SEPARATOR}${String(i)}`,
-        name: t.name,
-      });
-    });
-
-    customTemplates.forEach((t, i) => {
-      templates.push({
-        value: `${CUSTOM_PREFIX}${PREFIX_SEPARATOR}${String(i)}`,
-        name: t.name,
-      });
-    });
-
-    return templates;
-  }, [customTemplates]);
+  }, [selected]);
 
   return {
-    customTemplates,
-    selectedValue,
-    currentTemplate,
-    isCustomSelected,
-    setSelectedValue,
+    templates,
+    selected,
+    setSelected,
     addTemplate,
     removeTemplate,
-    getAllTemplates,
   };
 }

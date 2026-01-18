@@ -1,5 +1,9 @@
 import type { Template } from './types';
 
+export function generateTemplateId(): string {
+  return crypto.randomUUID();
+}
+
 const STORAGE_KEYS = {
   CUSTOM_TEMPLATES: 'customTemplates',
   LAST_SELECTED: 'lastSelectedTemplate',

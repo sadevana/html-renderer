@@ -1,24 +1,33 @@
+import type { Template } from '../types';
+
 interface TemplateSelectorProps {
-  selectedValue: string;
-  templates: { value: string; name: string }[];
-  onChange: (value: string) => void;
+  selected: Template;
+  templates: Template[];
+  onChange: (template: Template) => void;
 }
 
 export function TemplateSelector({
-  selectedValue,
+  selected,
   templates,
   onChange,
 }: TemplateSelectorProps) {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const template = templates.find((t) => t.id === e.target.value);
+    if (template) {
+      onChange(template);
+    }
+  };
+
   return (
     <label htmlFor="templateSelect">
       Select Template
       <select
         id="templateSelect"
-        value={selectedValue}
-        onChange={(e) => { onChange(e.target.value); }}
+        value={selected.id}
+        onChange={handleChange}
       >
         {templates.map((t) => (
-          <option key={t.value} value={t.value}>
+          <option key={t.id} value={t.id}>
             {t.name}
           </option>
         ))}
